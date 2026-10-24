@@ -1,0 +1,38 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit role' : 'New role' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="role-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Role name</mat-label>
+      <input matInput formControlName="role_name" placeholder="e.g. ADMIN" />
+      <mat-hint>Convention: UPPERCASE (e.g. ADMIN, MANAGER)</mat-hint>
+      @if (form.get('role_name')?.hasError('required')) {
+        <mat-error>Role name is required.</mat-error>
+      }
+      @if (form.get('role_name')?.hasError('serverError')) {
+        <mat-error>{{ form.get('role_name')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    form="role-form"
+    type="submit"
+    [disabled]="loading() || form.invalid"
+    (click)="submit()">
+    @if (loading()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      {{ isEdit ? 'Save' : 'Create' }}
+    }
+  </button>
+</mat-dialog-actions>
