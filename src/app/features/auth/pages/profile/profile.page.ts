@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -15,6 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 
 import { Auth } from '../../../../core/auth/auth';
 import { AppError } from '../../../../core/http/app-error.model';
+import { NotificationService } from '../../../../core/notification/notification';
 import { UserResponse } from '../../models/user-response.model';
 
 /**
@@ -47,6 +49,8 @@ import { UserResponse } from '../../models/user-response.model';
 })
 export class ProfilePage implements OnInit {
   private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+  private readonly notification = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly loading = signal(true);
@@ -81,8 +85,22 @@ export class ProfilePage implements OnInit {
         this.loading.set(false);
       },
       error: (err: AppError) => {
-        this.error.set(err);
         this.loading.set(false);
+
+        if (err.kind === 'UNAUTHENTICATED') {
+          // Session expired while the user was on the profile page; clear local
+          // state and redirect to login so they can re-authenticate.
+          this.auth.clearSession();
+          void this.router.navigate(['/login'], { queryParams: { returnUrl: '/profile' } });
+          return;
+        }
+
+        if (err.kind === 'FORBIDDEN') {
+          this.notification.error(err.message);
+          return;
+        }
+
+        this.error.set(err);
       },
     });
   }
