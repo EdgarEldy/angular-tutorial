@@ -1,0 +1,37 @@
+<mat-sidenav-container class="shell">
+  <!-- Sidenav -->
+  <mat-sidenav
+    class="shell__sidenav"
+    [opened]="sidenavOpen()"
+    mode="side">
+    <mat-nav-list>
+      @for (item of navItems; track item.route) {
+        <a
+          mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- Main area -->
+  <mat-sidenav-content class="shell__content">
+    <!-- Toolbar -->
+    <mat-toolbar class="shell__toolbar" color="primary">
+      <button mat-icon-button aria-label="Toggle navigation" (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="shell__app-name">Angular Tutorial</span>
+      <span class="shell__spacer"></span>
+    </mat-toolbar>
+
+    <!-- Page content -->
+    <main class="shell__main">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
