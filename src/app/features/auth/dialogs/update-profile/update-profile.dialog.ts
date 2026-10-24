@@ -4,6 +4,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -17,6 +18,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Auth } from '../../../../core/auth/auth';
 import { AppError } from '../../../../core/http/app-error.model';
+import { NotificationService } from '../../../../core/notification/notification';
 import { UserResponse } from '../../models/user-response.model';
 
 /** Data injected into the dialog from the parent component. */
@@ -56,6 +58,8 @@ export interface UpdateProfileDialogData {
 })
 export class UpdateProfileDialog {
   private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+  private readonly notification = inject(NotificationService);
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<UpdateProfileDialog>);
   protected readonly data = inject<UpdateProfileDialogData>(MAT_DIALOG_DATA);
@@ -90,6 +94,20 @@ export class UpdateProfileDialog {
       error: (err: AppError) => {
         this.loading.set(false);
 
+        if (err.kind === 'UNAUTHENTICATED') {
+          // Session expired mid-dialog; close before redirecting so the overlay
+          // is not left open after navigation.
+          this.dialogRef.close();
+          this.auth.clearSession();
+          void this.router.navigate(['/login'], { queryParams: { returnUrl: '/profile' } });
+          return;
+        }
+
+        if (err.kind === 'FORBIDDEN') {
+          this.notification.error(err.message);
+          return;
+        }
+
         if (err.kind === 'VALIDATION' && err.fieldErrors) {
           for (const [field, message] of Object.entries(err.fieldErrors)) {
             const control = this.form.get(field);
@@ -97,9 +115,10 @@ export class UpdateProfileDialog {
               control.setErrors({ serverError: message });
             }
           }
-        } else {
-          this.serverError.set(err.message);
+          return;
         }
+
+        this.serverError.set(err.message);
       },
     });
   }
