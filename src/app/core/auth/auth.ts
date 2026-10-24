@@ -273,6 +273,25 @@ export class Auth {
   }
 
   /**
+   * Fetches the current user's profile and propagates any HTTP error to the caller.
+   *
+   * Unlike loadCurrentUser(), this method does NOT swallow errors. It is intended
+   * for use in the ProfilePage where an error state with a retry button is needed.
+   * loadCurrentUser() is kept for the app initializer and post-login flows where
+   * a failure should simply leave the session state unchanged.
+   *
+   * @returns observable that emits the UserResponse on success or errors with AppError
+   */
+  getProfile(): Observable<UserResponse> {
+    return this.http
+      .get<ApiResponse<UserResponse>>(`${this.base}/auth/me`)
+      .pipe(
+        map((res) => res.data),
+        tap((user) => this.currentUser.set(user)),
+      );
+  }
+
+  /**
    * Updates the authenticated user's profile (first and last name).
    *
    * @param userId - numeric ID of the user to update (from currentUser signal)
