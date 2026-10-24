@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>New permission</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="permission-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Resource</mat-label>
+      <input matInput formControlName="resource" placeholder="e.g. PRODUCT" />
+      <mat-hint>Convention: UPPERCASE noun</mat-hint>
+      @if (form.get('resource')?.hasError('required')) {
+        <mat-error>Resource is required.</mat-error>
+      }
+      @if (form.get('resource')?.hasError('serverError')) {
+        <mat-error>{{ form.get('resource')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Action</mat-label>
+      <input matInput formControlName="action" placeholder="e.g. READ" />
+      <mat-hint>Convention: UPPERCASE verb -- gives PRODUCT:READ in JWT</mat-hint>
+      @if (form.get('action')?.hasError('required')) {
+        <mat-error>Action is required.</mat-error>
+      }
+      @if (form.get('action')?.hasError('serverError')) {
+        <mat-error>{{ form.get('action')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    form="permission-form"
+    type="submit"
+    [disabled]="loading() || form.invalid"
+    (click)="submit()">
+    @if (loading()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Create
+    }
+  </button>
+</mat-dialog-actions>

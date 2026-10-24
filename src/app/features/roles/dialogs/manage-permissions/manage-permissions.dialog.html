@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>Manage permissions -- {{ role().role_name }}</h2>
+
+<mat-dialog-content>
+  @if (loadingAll()) {
+    <div class="center">
+      <mat-spinner diameter="32" />
+    </div>
+  } @else {
+    <!-- Current permissions as removable chips -->
+    <p class="section-label">Assigned permissions</p>
+    @if (role().permissions.length === 0) {
+      <p class="empty-hint">No permissions assigned yet.</p>
+    } @else {
+      <mat-chip-set>
+        @for (p of role().permissions; track p.id) {
+          <mat-chip
+            [removable]="true"
+            (removed)="removePermission(p)">
+            {{ p.resource }}:{{ p.action }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        }
+      </mat-chip-set>
+    }
+
+    <!-- Add permission select -->
+    <p class="section-label" style="margin-top: 16px;">Add permission</p>
+    <div class="add-row">
+      <mat-select
+        [(ngModel)]="selectedPermissionId"
+        [disabled]="saving()"
+        placeholder="Select a permission">
+        @for (p of availablePermissions; track p.id) {
+          <mat-option [value]="p.id">{{ p.resource }}:{{ p.action }}</mat-option>
+        }
+      </mat-select>
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="selectedPermissionId === null || saving()"
+        (click)="addPermission()">
+        @if (saving()) {
+          <mat-spinner diameter="18" />
+        } @else {
+          Add
+        }
+      </button>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>

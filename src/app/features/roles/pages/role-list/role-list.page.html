@@ -1,0 +1,59 @@
+<div class="page-header">
+  <h1>Roles</h1>
+  <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    New role
+  </button>
+</div>
+
+@if (loading()) {
+  <div class="center">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (error(); as e) {
+  <div class="center">
+    <p class="error-text">{{ e.message }}</p>
+    <button mat-stroked-button (click)="loadRoles()">Retry</button>
+  </div>
+} @else if (roles().length === 0) {
+  <p class="empty-state">No roles defined yet.</p>
+} @else {
+  <table mat-table [dataSource]="roles()" class="mat-elevation-z2">
+    <!-- Role name -->
+    <ng-container matColumnDef="role_name">
+      <th mat-header-cell *matHeaderCellDef>Role</th>
+      <td mat-cell *matCellDef="let r">{{ r.role_name }}</td>
+    </ng-container>
+
+    <!-- Permissions as chips -->
+    <ng-container matColumnDef="permissions">
+      <th mat-header-cell *matHeaderCellDef>Permissions</th>
+      <td mat-cell *matCellDef="let r">
+        <mat-chip-set>
+          @for (p of r.permissions; track p.id) {
+            <mat-chip>{{ p.resource }}:{{ p.action }}</mat-chip>
+          }
+        </mat-chip-set>
+      </td>
+    </ng-container>
+
+    <!-- Row actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let r">
+        <button mat-icon-button aria-label="Edit role" (click)="openEditDialog(r)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Manage permissions" (click)="openManagePermissions(r)">
+          <mat-icon>manage_accounts</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" aria-label="Delete role" (click)="deleteRole(r)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+}

@@ -1,0 +1,23 @@
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.section-label {
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.empty-hint {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.add-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  mat-select { flex: 1; }
+}
