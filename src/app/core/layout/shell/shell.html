@@ -15,6 +15,16 @@
           <span matListItemTitle>{{ item.label }}</span>
         </a>
       }
+
+      <!-- Administration link: only visible to ADMIN role -->
+      <a
+        *appHasRole="'ADMIN'"
+        mat-list-item
+        routerLink="/admin/users"
+        routerLinkActive="active-link">
+        <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+        <span matListItemTitle>Administration</span>
+      </a>
     </mat-nav-list>
   </mat-sidenav>
 
@@ -27,6 +37,33 @@
       </button>
       <span class="shell__app-name">Angular Tutorial</span>
       <span class="shell__spacer"></span>
+
+      @if (auth.isAuthenticated()) {
+        <!-- Authenticated: show user menu -->
+        <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User menu">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <div class="user-menu-header">
+            @if (auth.currentUser(); as user) {
+              <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+              <span class="user-email">{{ user.email }}</span>
+            }
+          </div>
+          <a mat-menu-item routerLink="/profile">
+            <mat-icon>person</mat-icon>
+            Profile
+          </a>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            Sign out
+          </button>
+        </mat-menu>
+      } @else {
+        <!-- Unauthenticated: show login / register links -->
+        <a mat-button routerLink="/login">Sign in</a>
+        <a mat-button routerLink="/register">Register</a>
+      }
     </mat-toolbar>
 
     <!-- Page content -->

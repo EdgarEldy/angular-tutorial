@@ -1,0 +1,30 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.full-width {
+  width: 100%;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.form-error {
+  color: var(--mat-form-field-error-text-color, #f44336);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+mat-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
