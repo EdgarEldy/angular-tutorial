@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  OnInit,
   signal,
 } from '@angular/core';
 import {
@@ -48,7 +49,7 @@ import { AppError } from '../../../../core/http/app-error.model';
   templateUrl: './login.page.html',
   styleUrl: './login.page.scss',
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -72,6 +73,21 @@ export class LoginPage {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
+
+  /**
+   * Redirects already-authenticated users away from the login page.
+   *
+   * The root path redirects to /login via AUTH_ROUTES. If the user is already
+   * authenticated they should never see the login form -- send them to the
+   * returnUrl (set by authGuard) or fall back to /dashboard.
+   */
+  ngOnInit(): void {
+    if (this.auth.isAuthenticated()) {
+      const returnUrl =
+        this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
+      void this.router.navigateByUrl(returnUrl);
+    }
+  }
 
   /**
    * Submits the login form.
