@@ -1,0 +1,32 @@
+.shell {
+  height: 100vh;
+
+  &__sidenav {
+    width: 220px;
+  }
+
+  &__toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  &__app-name {
+    margin-left: 0.5rem;
+    font-weight: 500;
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__main {
+    padding: 1.5rem;
+  }
+}
+
+// Highlight active nav link
+::ng-deep .active-link {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
