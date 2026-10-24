@@ -1,0 +1,46 @@
+<h2 mat-dialog-title>Edit user</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="edit-user-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>First name</mat-label>
+      <input matInput formControlName="first_name" />
+      @if (form.get('first_name')?.hasError('required')) {
+        <mat-error>First name is required.</mat-error>
+      }
+      @if (form.get('first_name')?.hasError('serverError')) {
+        <mat-error>{{ form.get('first_name')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Last name</mat-label>
+      <input matInput formControlName="last_name" />
+      @if (form.get('last_name')?.hasError('required')) {
+        <mat-error>Last name is required.</mat-error>
+      }
+      @if (form.get('last_name')?.hasError('serverError')) {
+        <mat-error>{{ form.get('last_name')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="loading() || form.invalid"
+    (click)="submit()">
+    @if (loading()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Save
+    }
+  </button>
+</mat-dialog-actions>
