@@ -1,7 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { ManagePermissionsDialog } from './manage-permissions.dialog';
 import { Roles } from '../../roles';
@@ -21,7 +22,7 @@ const permissionsMock = {
   getPermissions: () => of([permStub]),
 };
 
-const dialogRefMock = { close: jest.fn() };
+const dialogRefMock = { close: vi.fn() };
 
 describe('ManagePermissionsDialog', () => {
   let fixture: ComponentFixture<ManagePermissionsDialog>;
@@ -85,7 +86,7 @@ describe('ManagePermissionsDialog', () => {
 
   it('shows error notification when addPermission fails', async () => {
     const error: AppError = { kind: 'SERVER', status: 500, message: 'Server error' };
-    jest.spyOn(rolesMock, 'addPermission').mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(rolesMock, 'addPermission').mockReturnValueOnce(throwError(() => error));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -97,3 +98,4 @@ describe('ManagePermissionsDialog', () => {
     expect(component['saving']()).toBe(false);
   });
 });
+

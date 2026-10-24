@@ -87,9 +87,12 @@ export class RoleFormDialog {
     this.serverError.set(null);
 
     const { role_name } = this.form.getRawValue();
-    const op$ = this.isEdit
-      ? this.rolesService.updateRole(this.data!.role!.id, { role_name })
-      : this.rolesService.createRole({ role_name });
+    // When isEdit is true, data and data.role are guaranteed by the caller
+    const existingId = this.data?.role?.id;
+    const op$ =
+      this.isEdit && existingId !== undefined
+        ? this.rolesService.updateRole(existingId, { role_name })
+        : this.rolesService.createRole({ role_name });
 
     op$.subscribe({
       next: (result) => {
