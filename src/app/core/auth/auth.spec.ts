@@ -4,6 +4,7 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 import { Auth } from './auth';
 import { environment } from '../../../environments/environment';
@@ -11,7 +12,6 @@ import { environment } from '../../../environments/environment';
 /** Builds a minimal valid JWT with the given claims payload. */
 function buildJwt(payload: Record<string, unknown>): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  // Replace standard base64 chars with base64url chars
   const body = btoa(JSON.stringify(payload))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
@@ -133,20 +133,20 @@ describe('Auth', () => {
   // HTTP methods
   // --------------------------------------------------------------------------
 
-  it('login stores the token and emits AuthResponse', (done) => {
-    service
-      .login({ email: 'a@b.com', password: 'secret123' })
-      .subscribe((res) => {
-        expect(res.token).toBe(validToken);
-        expect(service.token()).toBe(validToken);
-        done();
-      });
+  it('login stores the token and emits AuthResponse', async () => {
+    const promise = firstValueFrom(
+      service.login({ email: 'a@b.com', password: 'secret123' }),
+    );
 
     const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/login`);
     req.flush({ success: true, message: 'OK', data: { token: validToken }, timestamp: '' });
+
+    const res = await promise;
+    expect(res.token).toBe(validToken);
+    expect(service.token()).toBe(validToken);
   });
 
-  it('register calls POST /auth/register and returns UserResponse', (done) => {
+  it('register calls POST /auth/register and returns UserResponse', async () => {
     const payload = {
       first_name: 'Jane',
       last_name: 'Doe',
@@ -163,29 +163,26 @@ describe('Auth', () => {
       roles: [],
     };
 
-    service.register(payload).subscribe((user) => {
-      expect(user.email).toBe('jane@example.com');
-      done();
-    });
-
+    const promise = firstValueFrom(service.register(payload));
     const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/register`);
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
+
+    const user = await promise;
+    expect(user.email).toBe('jane@example.com');
   });
 
-  it('logout clears session even when the backend returns an error', (done) => {
+  it('logout clears session even when the backend returns an error', async () => {
     service.storeToken(validToken);
 
-    service.logout().subscribe(() => {
-      expect(service.token()).toBeNull();
-      done();
-    });
-
+    const promise = firstValueFrom(service.logout());
     const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/logout`);
-    // Simulate a network failure
     req.error(new ProgressEvent('error'));
+
+    await promise;
+    expect(service.token()).toBeNull();
   });
 
-  it('loadCurrentUser populates currentUser signal', (done) => {
+  it('loadCurrentUser populates currentUser signal', async () => {
     const userStub = {
       id: 42,
       first_name: 'Admin',
@@ -196,23 +193,21 @@ describe('Auth', () => {
       roles: [],
     };
 
-    service.loadCurrentUser().subscribe((user) => {
-      expect(user).toEqual(userStub);
-      expect(service.currentUser()).toEqual(userStub);
-      done();
-    });
-
+    const promise = firstValueFrom(service.loadCurrentUser());
     const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
+
+    const user = await promise;
+    expect(user).toEqual(userStub);
+    expect(service.currentUser()).toEqual(userStub);
   });
 
-  it('loadCurrentUser returns null and does not throw when the request fails', (done) => {
-    service.loadCurrentUser().subscribe((user) => {
-      expect(user).toBeNull();
-      done();
-    });
-
+  it('loadCurrentUser returns null and does not throw when the request fails', async () => {
+    const promise = firstValueFrom(service.loadCurrentUser());
     const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
     req.error(new ProgressEvent('error'));
+
+    const user = await promise;
+    expect(user).toBeNull();
   });
 });
