@@ -1,6 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { RoleListPage } from './role-list.page';
 import { Roles } from '../../roles';
@@ -45,7 +46,7 @@ describe('RoleListPage', () => {
 
   it('shows error state on load failure', async () => {
     const error: AppError = { kind: 'SERVER', status: 500, message: 'Oops' };
-    jest.spyOn(rolesMock, 'getRoles').mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(rolesMock, 'getRoles').mockReturnValueOnce(throwError(() => error));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -56,7 +57,7 @@ describe('RoleListPage', () => {
   });
 
   it('shows empty state when roles list is empty', async () => {
-    jest.spyOn(rolesMock, 'getRoles').mockReturnValueOnce(of([]));
+    vi.spyOn(rolesMock, 'getRoles').mockReturnValueOnce(of([]));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -66,3 +67,4 @@ describe('RoleListPage', () => {
     expect(empty).toBeTruthy();
   });
 });
+
