@@ -1,0 +1,29 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.full-width {
+  width: 100%;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.form-error {
+  color: var(--mat-form-field-error-text-color, #f44336);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.success-message {
+  color: var(--mat-sys-tertiary, #4caf50);
+  margin-bottom: 1rem;
+}
