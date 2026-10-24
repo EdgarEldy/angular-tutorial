@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import {
   ActivatedRouteSnapshot,
   CanActivateFn,
-  Router,
   RouterStateSnapshot,
   UrlTree,
 } from '@angular/router';
@@ -25,7 +24,6 @@ const FUTURE_EXP = Math.floor(Date.now() / 1000) + 3600;
 
 describe('roleGuard', () => {
   let auth: Auth;
-  let router: Router;
 
   const executeGuard: CanActivateFn = (route, state) =>
     TestBed.runInInjectionContext(() => roleGuard(route, state));
@@ -39,7 +37,6 @@ describe('roleGuard', () => {
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     auth = TestBed.inject(Auth);
-    router = TestBed.inject(Router);
   });
 
   afterEach(() => localStorage.clear());
