@@ -465,13 +465,13 @@ There is no "create user" screen: accounts are created through registration (an 
 
 ### Tasks
 
-- [ ] The three features `users`, `roles` and `permissions` (service, models, routes, pages, dialogs); `roles` and `users` use the `roles` and `permissions` services for their assignment dialogs
-- [ ] The user list does not show roles (the list endpoint returns none); the "Manage roles" dialog loads `GET /users/{id}` and updates its chips from the `UserResponse` returned by every assign or remove call
-- [ ] The "Manage permissions" dialog updates its chips from the `RoleResponse` returned by every assign or remove call, and the roles table reflects the change on close
-- [ ] An administrator cannot lock or delete **their own** account from the UI: disable those actions on the current user's row (the backend also refuses locking one's own account with a `422`)
-- [ ] Deleting a role or permission that is still assigned returns a `422`: show the backend message and keep the row
-- [ ] Role names and permission `resource` / `action` are free text in the dialogs; show a hint about the convention (`ADMIN`, `PRODUCT` + `READ` giving `PRODUCT:READ`)
-- [ ] Tests: assignment dialogs update from the returned entity, own-account protection, `422` display, non-admin denied on every `/admin` route
+- [x] The three features `users`, `roles` and `permissions` (service, models, routes, pages, dialogs); `roles` and `users` use the `roles` and `permissions` services for their assignment dialogs
+- [x] The user list does not show roles (the list endpoint returns none); the "Manage roles" dialog loads `GET /users/{id}` and updates its chips from the `UserResponse` returned by every assign or remove call
+- [x] The "Manage permissions" dialog updates its chips from the `RoleResponse` returned by every assign or remove call, and the roles table reflects the change on close
+- [x] An administrator cannot lock or delete **their own** account from the UI: disable those actions on the current user's row (the backend also refuses locking one's own account with a `422`)
+- [x] Deleting a role or permission that is still assigned returns a `422`: show the backend message and keep the row
+- [x] Role names and permission `resource` / `action` are free text in the dialogs; show a hint about the convention (`ADMIN`, `PRODUCT` + `READ` giving `PRODUCT:READ`)
+- [x] Tests: assignment dialogs update from the returned entity, own-account protection, `422` display, non-admin denied on every `/admin` route
 
 ## feature/categories
 
