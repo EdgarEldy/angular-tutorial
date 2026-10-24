@@ -3,6 +3,7 @@ import { ShellComponent } from './core/layout/shell/shell';
 import { NotFoundComponent } from './features/not-found/not-found';
 import { NotAllowedComponent } from './features/not-allowed/not-allowed';
 import { authGuard } from './core/auth/auth-guard';
+import { roleGuard } from './core/auth/role-guard';
 
 /**
  * Application route configuration.
@@ -74,6 +75,33 @@ export const routes: Routes = [
         path: 'orders',
         loadComponent: () =>
           import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
+      },
+
+      // Administration area: ADMIN role required for all /admin/* routes
+      {
+        path: 'admin',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
+        children: [
+          { path: '', redirectTo: 'users', pathMatch: 'full' },
+          {
+            path: 'users',
+            loadChildren: () =>
+              import('./features/users/users.routes').then((m) => m.USERS_ROUTES),
+          },
+          {
+            path: 'roles',
+            loadChildren: () =>
+              import('./features/roles/roles.routes').then((m) => m.ROLES_ROUTES),
+          },
+          {
+            path: 'permissions',
+            loadChildren: () =>
+              import('./features/permissions/permissions.routes').then(
+                (m) => m.PERMISSIONS_ROUTES,
+              ),
+          },
+        ],
       },
     ],
   },
