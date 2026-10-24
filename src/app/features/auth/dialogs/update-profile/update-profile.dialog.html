@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>Edit profile</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>First name</mat-label>
+      <input matInput formControlName="first_name" autocomplete="given-name" />
+      @if (form.controls.first_name.hasError('required')) {
+        <mat-error>First name is required</mat-error>
+      } @else if (form.controls.first_name.hasError('serverError')) {
+        <mat-error>{{ form.controls.first_name.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Last name</mat-label>
+      <input matInput formControlName="last_name" autocomplete="family-name" />
+      @if (form.controls.last_name.hasError('required')) {
+        <mat-error>Last name is required</mat-error>
+      } @else if (form.controls.last_name.hasError('serverError')) {
+        <mat-error>{{ form.controls.last_name.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="undefined">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="loading() || form.invalid"
+    (click)="submit()">
+    @if (loading()) {
+      <mat-spinner diameter="20" />
+    } @else {
+      Save
+    }
+  </button>
+</mat-dialog-actions>

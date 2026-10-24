@@ -1,0 +1,28 @@
+<div class="activate-container">
+  <mat-card class="activate-card">
+    <mat-card-header>
+      <mat-card-title>Account Activation</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading()) {
+        <div class="center">
+          <mat-spinner diameter="48" />
+          <p>Activating your account&hellip;</p>
+        </div>
+      } @else if (success()) {
+        <div class="center">
+          <mat-icon class="success-icon">check_circle</mat-icon>
+          <p>Your account has been activated successfully!</p>
+          <a mat-raised-button color="primary" routerLink="/login">Sign in</a>
+        </div>
+      } @else if (errorMessage()) {
+        <div class="center">
+          <mat-icon class="error-icon">error</mat-icon>
+          <p class="error-text">{{ errorMessage() }}</p>
+          <a mat-stroked-button routerLink="/register">Register again</a>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>
