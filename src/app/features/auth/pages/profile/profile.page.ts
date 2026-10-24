@@ -66,12 +66,16 @@ export class ProfilePage implements OnInit {
   /**
    * Loads the user profile from GET /auth/me.
    * Can be called again via the error state retry button.
+   *
+   * Uses getProfile() (not loadCurrentUser()) because the profile page
+   * needs errors to propagate so the error-state/retry UI can appear.
+   * loadCurrentUser() swallows errors for the app initializer use case.
    */
   protected loadProfile(): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.auth.loadCurrentUser().subscribe({
+    this.auth.getProfile().subscribe({
       next: (u) => {
         this.user.set(u);
         this.loading.set(false);
