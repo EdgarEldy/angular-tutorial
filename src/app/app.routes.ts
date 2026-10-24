@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { ShellComponent } from './core/layout/shell/shell';
 import { NotFoundComponent } from './features/not-found/not-found';
 import { NotAllowedComponent } from './features/not-allowed/not-allowed';
+import { authGuard } from './core/auth/auth-guard';
 
 /**
  * Application route configuration.
@@ -9,24 +10,33 @@ import { NotAllowedComponent } from './features/not-allowed/not-allowed';
  * All authenticated feature routes are children of ShellComponent so they
  * share the toolbar + sidenav layout via its <router-outlet />.
  *
- * Lazy loading with loadComponent() demonstrates code-splitting: each feature
- * module is only downloaded when the user first navigates to it. The imports
- * use the Angular 17+ default export pattern (the component class is the
- * default export).
+ * Auth routes (login, register, activate, forgot/reset password) are mounted
+ * at the root level, outside the shell, so they render without the nav bar.
+ * The profile route is inside the shell and behind authGuard.
  *
- * Route guards (authGuard, roleGuard) will be added in feature/auth and
- * feature/rbac branches. The stubs below mark the canActivate slots with
- * comments so the guard wiring is easy to find.
+ * Lazy loading with loadChildren() / loadComponent() demonstrates code-splitting:
+ * each feature module is downloaded only when the user first navigates to it.
+ *
+ * Route guards (authGuard, roleGuard) are wired here for the dashboard and
+ * profile; feature-specific guards will be added in later branches.
  */
 export const routes: Routes = [
   // Error pages (outside shell so they render without the nav)
   { path: 'not-allowed', component: NotAllowedComponent },
   { path: '404', component: NotFoundComponent },
 
+  // Auth pages (outside shell -- no toolbar/sidenav for login, register, etc.)
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
+  },
+
   // Authenticated shell
   {
     path: '',
     component: ShellComponent,
+    canActivate: [authGuard],
     children: [
       // Default redirect
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -36,7 +46,6 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () =>
           import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
-        // canActivate: [authGuard]  -- wired in feature/auth
       },
 
       // Categories (feature/categories branch)
@@ -44,7 +53,6 @@ export const routes: Routes = [
         path: 'categories',
         loadComponent: () =>
           import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
-        // canActivate: [authGuard]
       },
 
       // Products (feature/products branch)
@@ -52,7 +60,6 @@ export const routes: Routes = [
         path: 'products',
         loadComponent: () =>
           import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
-        // canActivate: [authGuard]
       },
 
       // Customers (feature/customers branch)
@@ -60,7 +67,6 @@ export const routes: Routes = [
         path: 'customers',
         loadComponent: () =>
           import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
-        // canActivate: [authGuard]
       },
 
       // Orders (feature/orders branch)
@@ -68,11 +74,10 @@ export const routes: Routes = [
         path: 'orders',
         loadComponent: () =>
           import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
-        // canActivate: [authGuard]
       },
     ],
   },
 
-  // Wildcard – must be last
+  // Wildcard -- must be last
   { path: '**', component: NotFoundComponent },
 ];
