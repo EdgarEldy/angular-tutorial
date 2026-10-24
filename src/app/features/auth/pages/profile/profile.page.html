@@ -3,27 +3,27 @@
     <div class="center">
       <mat-spinner diameter="48" />
     </div>
-  } @else if (error()) {
+  } @else if (error(); as e) {
     <div class="center">
-      <p class="error-text">{{ error()!.message }}</p>
+      <p class="error-text">{{ e.message }}</p>
       <button mat-raised-button color="primary" (click)="loadProfile()">Retry</button>
     </div>
-  } @else if (user()) {
+  } @else if (user(); as u) {
     <mat-card class="profile-card">
       <mat-card-header>
         <mat-icon mat-card-avatar>account_circle</mat-icon>
-        <mat-card-title>{{ user()!.first_name }} {{ user()!.last_name }}</mat-card-title>
-        <mat-card-subtitle>{{ user()!.email }}</mat-card-subtitle>
+        <mat-card-title>{{ u.first_name }} {{ u.last_name }}</mat-card-title>
+        <mat-card-subtitle>{{ u.email }}</mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <section class="status-row">
-          @if (user()!.enabled) {
+          @if (u.enabled) {
             <mat-chip color="primary" highlighted>Active</mat-chip>
           } @else {
             <mat-chip>Pending activation</mat-chip>
           }
-          @if (user()!.account_locked) {
+          @if (u.account_locked) {
             <mat-chip color="warn" highlighted>Locked</mat-chip>
           }
         </section>
