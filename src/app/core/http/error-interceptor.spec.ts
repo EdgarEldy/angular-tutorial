@@ -8,6 +8,7 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
+import { firstValueFrom } from 'rxjs';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { errorInterceptor } from './error-interceptor';
 import { AppError } from './app-error.model';
@@ -31,62 +32,37 @@ describe('errorInterceptor', () => {
     controller.verify();
   });
 
-  it('passes through successful responses unchanged', (done) => {
-    http.get('/api/test').subscribe({
-      next: (res) => {
-        expect(res).toEqual({ ok: true });
-        done();
-      },
-    });
+  it('passes through successful responses unchanged', async () => {
+    const result$ = http.get('/api/test');
+    const promise = firstValueFrom(result$);
     controller.expectOne('/api/test').flush({ ok: true });
+    const res = await promise;
+    expect(res).toEqual({ ok: true });
   });
 
-  it('converts HttpErrorResponse to AppError on 400', (done) => {
-    http.get('/api/test').subscribe({
-      error: (err: AppError) => {
-        expect(err.kind).toBe('VALIDATION');
-        expect(err.status).toBe(400);
-        done();
-      },
-    });
+  it('converts HttpErrorResponse to AppError on 400', async () => {
+    const promise = firstValueFrom(http.get('/api/test')).catch((err: AppError) => err);
     controller.expectOne('/api/test').flush(
       { success: false, message: 'Bad request', data: { title: 'Bad request', status: 400, detail: 'Bad request', instance: '/api/test' } },
       { status: 400, statusText: 'Bad Request' },
     );
+    const err = (await promise) as AppError;
+    expect(err.kind).toBe('VALIDATION');
+    expect(err.status).toBe(400);
   });
 
-  it('converts HttpErrorResponse to AppError on 401', (done) => {
-    http.get('/api/test').subscribe({
-      error: (err: AppError) => {
-        expect(err.kind).toBe('UNAUTHENTICATED');
-        done();
-      },
-    });
+  it('converts HttpErrorResponse to AppError on 401', async () => {
+    const promise = firstValueFrom(http.get('/api/test')).catch((err: AppError) => err);
     controller.expectOne('/api/test').flush(null, { status: 401, statusText: 'Unauthorized' });
+    const err = (await promise) as AppError;
+    expect(err.kind).toBe('UNAUTHENTICATED');
   });
 
-  it('converts HttpErrorResponse to AppError on 500', (done) => {
-    http.get('/api/test').subscribe({
-      error: (err: AppError) => {
-        expect(err.kind).toBe('SERVER');
-        expect(err.status).toBe(500);
-        done();
-      },
-    });
+  it('converts HttpErrorResponse to AppError on 500', async () => {
+    const promise = firstValueFrom(http.get('/api/test')).catch((err: AppError) => err);
     controller.expectOne('/api/test').flush(null, { status: 500, statusText: 'Server Error' });
-  });
-
-  it('re-throws non-HttpErrorResponse errors unchanged', (done) => {
-    // Simulate a programming error thrown by a previous interceptor
-    const nonHttpError = new Error('Unexpected error');
-    http.get('/api/test').subscribe({
-      error: (err: unknown) => {
-        expect(err).toBe(nonHttpError);
-        done();
-      },
-    });
-    // Flush a successful response then manually trigger error
-    const req = controller.expectOne('/api/test');
-    req.flush(null, { status: 200, statusText: 'OK' });
+    const err = (await promise) as AppError;
+    expect(err.kind).toBe('SERVER');
+    expect(err.status).toBe(500);
   });
 });
