@@ -1,0 +1,32 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+
+  &__icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: var(--mat-sys-on-surface-variant);
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+  }
+
+  &__message {
+    margin: 0 0 1.5rem;
+    color: var(--mat-sys-on-surface-variant);
+    max-width: 360px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+}
