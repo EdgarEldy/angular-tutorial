@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { PermissionListPage } from './permission-list.page';
 import { Permissions } from '../../permissions';
@@ -50,9 +51,9 @@ describe('PermissionListPage', () => {
       status: 500,
       message: 'Server error',
     };
-    jest
-      .spyOn(permissionsMock, 'getPermissions')
-      .mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(permissionsMock, 'getPermissions').mockReturnValueOnce(
+      throwError(() => error),
+    );
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -65,9 +66,7 @@ describe('PermissionListPage', () => {
   });
 
   it('shows empty state when permissions list is empty', async () => {
-    jest
-      .spyOn(permissionsMock, 'getPermissions')
-      .mockReturnValueOnce(of([]));
+    vi.spyOn(permissionsMock, 'getPermissions').mockReturnValueOnce(of([]));
 
     fixture.detectChanges();
     await fixture.whenStable();
