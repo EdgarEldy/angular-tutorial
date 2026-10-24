@@ -210,4 +210,68 @@ describe('Auth', () => {
     const user = await promise;
     expect(user).toBeNull();
   });
+
+  it('getProfile returns UserResponse and propagates errors', async () => {
+    const userStub = {
+      id: 1, first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com',
+      enabled: true, account_locked: false, roles: [],
+    };
+
+    const promise = firstValueFrom(service.getProfile());
+    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    req.flush({ success: true, message: '', data: userStub, timestamp: '' });
+
+    const user = await promise;
+    expect(user.email).toBe('jane@example.com');
+    expect(service.currentUser()).toEqual(userStub);
+  });
+
+  it('updateProfile calls PUT /users/:id and returns updated user', async () => {
+    const userStub = {
+      id: 7, first_name: 'Janet', last_name: 'Smith', email: 'j@example.com',
+      enabled: true, account_locked: false, roles: [],
+    };
+
+    const promise = firstValueFrom(
+      service.updateProfile(7, { first_name: 'Janet', last_name: 'Smith' }),
+    );
+    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/users/7`);
+    expect(req.request.method).toBe('PUT');
+    req.flush({ success: true, message: '', data: userStub, timestamp: '' });
+
+    const user = await promise;
+    expect(user.first_name).toBe('Janet');
+    expect(service.currentUser()).toEqual(userStub);
+  });
+
+  it('activateAccount calls GET /auth/activate-account with token param', async () => {
+    const promise = firstValueFrom(service.activateAccount('my-token'));
+    const req = httpCtrl.expectOne(
+      `${environment.identityApiUrl}/auth/activate-account?token=my-token`,
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({ success: true, message: 'Activated', data: null, timestamp: '' });
+
+    await promise;
+  });
+
+  it('forgotPassword calls POST /auth/forgot-password', async () => {
+    const promise = firstValueFrom(service.forgotPassword({ email: 'a@b.com' }));
+    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/forgot-password`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ success: true, message: '', data: null, timestamp: '' });
+
+    await promise;
+  });
+
+  it('resetPassword calls POST /auth/reset-password', async () => {
+    const promise = firstValueFrom(
+      service.resetPassword({ token: 'tok', new_password: 'newPass123' }),
+    );
+    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/reset-password`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ success: true, message: '', data: null, timestamp: '' });
+
+    await promise;
+  });
 });
