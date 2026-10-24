@@ -35,8 +35,8 @@ import { AppError } from '../../../../core/http/app-error.model';
 export const passwordsMatch: ValidatorFn = (
   group: AbstractControl,
 ): ValidationErrors | null => {
-  const password = group.get('password')?.value as string;
-  const confirm = group.get('confirmPassword')?.value as string;
+  const password: string | null | undefined = group.get('password')?.value;
+  const confirm: string | null | undefined = group.get('confirmPassword')?.value;
   if (password && confirm && password !== confirm) {
     group.get('confirmPassword')?.setErrors({ passwordMismatch: true });
     return { passwordMismatch: true };
