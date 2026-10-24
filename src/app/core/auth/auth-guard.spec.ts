@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn, Router, RouterStateSnapshot, ActivatedRouteSnapshot, UrlTree } from '@angular/router';
+import { CanActivateFn, RouterStateSnapshot, ActivatedRouteSnapshot, UrlTree } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -8,7 +8,6 @@ import { Auth } from './auth';
 
 describe('authGuard', () => {
   let auth: Auth;
-  let router: Router;
 
   const executeGuard: CanActivateFn = (route, state) =>
     TestBed.runInInjectionContext(() => authGuard(route, state));
@@ -24,7 +23,6 @@ describe('authGuard', () => {
     });
 
     auth = TestBed.inject(Auth);
-    router = TestBed.inject(Router);
   });
 
   afterEach(() => localStorage.clear());
