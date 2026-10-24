@@ -1,6 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { UserListPage } from './user-list.page';
 import { Users } from '../../users';
@@ -69,7 +70,7 @@ describe('UserListPage', () => {
 
   it('shows error state on load failure', async () => {
     const error: AppError = { kind: 'SERVER', status: 500, message: 'Error' };
-    jest.spyOn(usersMock, 'getUsers').mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(usersMock, 'getUsers').mockReturnValueOnce(throwError(() => error));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -80,7 +81,7 @@ describe('UserListPage', () => {
   });
 
   it('shows empty state when no users found', async () => {
-    jest.spyOn(usersMock, 'getUsers').mockReturnValueOnce(
+    vi.spyOn(usersMock, 'getUsers').mockReturnValueOnce(
       of({ ...pageMock, content: [], totalElements: 0 }),
     );
 
@@ -93,10 +94,10 @@ describe('UserListPage', () => {
   });
 
   it('own-account lock/delete buttons are disabled for current user email', async () => {
-    jest.spyOn(usersMock, 'getUsers').mockReturnValueOnce(
+    vi.spyOn(usersMock, 'getUsers').mockReturnValueOnce(
       of({ ...pageMock, content: [{ ...userStub, email: 'admin@example.com' }] }),
     );
-    jest.spyOn(authMock, 'currentUser').mockReturnValue({ email: 'admin@example.com' });
+    vi.spyOn(authMock, 'currentUser').mockReturnValue({ email: 'admin@example.com' });
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -108,3 +109,4 @@ describe('UserListPage', () => {
     expect(disabledBtns.length).toBeGreaterThanOrEqual(2);
   });
 });
+

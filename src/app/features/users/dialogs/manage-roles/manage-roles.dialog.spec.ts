@@ -1,7 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { ManageRolesDialog } from './manage-roles.dialog';
 import { Users } from '../../users';
@@ -25,7 +26,7 @@ const rolesMock = {
   getRoles: () => of([roleStub]),
 };
 
-const dialogRefMock = { close: jest.fn() };
+const dialogRefMock = { close: vi.fn() };
 
 describe('ManageRolesDialog', () => {
   let fixture: ComponentFixture<ManageRolesDialog>;
@@ -87,7 +88,7 @@ describe('ManageRolesDialog', () => {
 
   it('shows error notification when addRole fails', async () => {
     const error: AppError = { kind: 'SERVER', status: 500, message: 'Error' };
-    jest.spyOn(usersMock, 'addRole').mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(usersMock, 'addRole').mockReturnValueOnce(throwError(() => error));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -98,3 +99,4 @@ describe('ManageRolesDialog', () => {
     expect(component['saving']()).toBe(false);
   });
 });
+

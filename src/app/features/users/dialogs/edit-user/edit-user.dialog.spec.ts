@@ -1,7 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { EditUserDialog } from './edit-user.dialog';
 import { Users } from '../../users';
@@ -16,7 +17,7 @@ const usersMock = {
   updateUser: () => of({ ...userStub, first_name: 'Janet' }),
 };
 
-const dialogRefMock = { close: jest.fn() };
+const dialogRefMock = { close: vi.fn() };
 
 describe('EditUserDialog', () => {
   let fixture: ComponentFixture<EditUserDialog>;
@@ -65,7 +66,7 @@ describe('EditUserDialog', () => {
       message: 'Validation failed',
       fieldErrors: { first_name: 'Too long' },
     };
-    jest.spyOn(usersMock, 'updateUser').mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(usersMock, 'updateUser').mockReturnValueOnce(throwError(() => error));
 
     (component as unknown as { submit: () => void }).submit();
     await fixture.whenStable();
@@ -73,3 +74,4 @@ describe('EditUserDialog', () => {
     expect(component['form'].get('first_name')?.hasError('serverError')).toBe(true);
   });
 });
+
