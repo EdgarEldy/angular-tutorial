@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatDialogRef } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { PermissionFormDialog } from './permission-form.dialog';
 import { Permissions } from '../../permissions';
@@ -13,7 +14,7 @@ const permissionsMock = {
   createPermission: () => of(permStub),
 };
 
-const dialogRefMock = { close: jest.fn() };
+const dialogRefMock = { close: vi.fn() };
 
 describe('PermissionFormDialog', () => {
   let fixture: ComponentFixture<PermissionFormDialog>;
@@ -41,7 +42,7 @@ describe('PermissionFormDialog', () => {
   });
 
   it('submit does nothing when form is invalid', () => {
-    const spy = jest.spyOn(permissionsMock, 'createPermission');
+    const spy = vi.spyOn(permissionsMock, 'createPermission');
     // form is empty by default -- both fields invalid
     (component as unknown as { submit: () => void }).submit();
     expect(spy).not.toHaveBeenCalled();
@@ -64,9 +65,9 @@ describe('PermissionFormDialog', () => {
       status: 422,
       message: 'Already exists',
     };
-    jest
-      .spyOn(permissionsMock, 'createPermission')
-      .mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(permissionsMock, 'createPermission').mockReturnValueOnce(
+      throwError(() => error),
+    );
 
     component['form'].setValue({ resource: 'PRODUCT', action: 'READ' });
     (component as unknown as { submit: () => void }).submit();
