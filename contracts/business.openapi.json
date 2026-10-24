@@ -1,0 +1,289 @@
+{
+  "openapi": "3.0.3",
+  "_stub": "STUB -- generated from README.md because the backend was not running at setup time. Run /contract-sync once spring-boot-tutorial is up on port 8080 to replace this file.",
+  "info": {
+    "title": "spring-boot-tutorial -- Business API",
+    "version": "0.0.1",
+    "description": "Categories, products, customers and orders."
+  },
+  "servers": [
+    { "url": "http://localhost:8080", "description": "Local dev" }
+  ],
+  "paths": {
+    "/api/v1/categories": {
+      "get": {
+        "summary": "Paginated category list (public)",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "size", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": { "description": "Page of categories", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponsePageCategoryResponse" } } } }
+        },
+        "security": []
+      },
+      "post": {
+        "summary": "Create category (ADMIN)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CategoryRequest" } } } },
+        "responses": {
+          "201": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseCategoryResponse" } } } },
+          "400": {}, "401": {}, "403": {}
+        }
+      }
+    },
+    "/api/v1/categories/{id}": {
+      "get": {
+        "summary": "Category detail with products (public)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseCategoryResponse" } } } },
+          "404": {}
+        },
+        "security": []
+      },
+      "put": {
+        "summary": "Update category (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CategoryRequest" } } } },
+        "responses": { "200": {}, "400": {}, "401": {}, "403": {}, "404": {} }
+      },
+      "delete": {
+        "summary": "Delete category -- 422 if still has products (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {}, "422": { "description": "Category still has products" } }
+      }
+    },
+    "/api/v1/products": {
+      "get": {
+        "summary": "Paginated product list with optional filters (public)",
+        "parameters": [
+          { "name": "page",        "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "size",        "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "sort",        "in": "query", "schema": { "type": "string" }, "example": "productName,asc" },
+          { "name": "categoryId",  "in": "query", "schema": { "type": "integer" } },
+          { "name": "productName", "in": "query", "schema": { "type": "string" } },
+          { "name": "minPrice",    "in": "query", "schema": { "type": "number" } },
+          { "name": "maxPrice",    "in": "query", "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponsePageProductResponse" } } } }
+        },
+        "security": []
+      },
+      "post": {
+        "summary": "Create product (ADMIN)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductRequest" } } } },
+        "responses": { "201": {}, "400": {}, "401": {}, "403": {}, "404": { "description": "Category not found" } }
+      }
+    },
+    "/api/v1/products/{id}": {
+      "get": {
+        "summary": "Product detail (public)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "404": {} },
+        "security": []
+      },
+      "put": {
+        "summary": "Update product -- 409 on concurrent modification (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductRequest" } } } },
+        "responses": { "200": {}, "400": {}, "401": {}, "403": {}, "404": {}, "409": { "description": "Modified by another request since it was read" } }
+      },
+      "delete": {
+        "summary": "Delete product (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {}, "404": {} }
+      }
+    },
+    "/api/v1/customers": {
+      "get": {
+        "summary": "Paginated customer list (authenticated)",
+        "parameters": [
+          { "name": "page",   "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "size",   "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Search by name" }
+        ],
+        "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponsePageCustomerResponse" } } } }, "401": {} }
+      },
+      "post": {
+        "summary": "Create customer (ADMIN)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerRequest" } } } },
+        "responses": { "201": {}, "400": {}, "401": {}, "403": {}, "409": { "description": "Email already in use" } }
+      }
+    },
+    "/api/v1/customers/{id}": {
+      "get": {
+        "summary": "Customer detail with ordered products (authenticated)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseCustomerResponse" } } } }, "401": {}, "404": {} }
+      },
+      "put": {
+        "summary": "Update customer (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerRequest" } } } },
+        "responses": { "200": {}, "400": {}, "401": {}, "403": {}, "404": {} }
+      },
+      "delete": {
+        "summary": "Delete customer (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {}, "404": {} }
+      }
+    },
+    "/api/v1/customers/{id}/orders": {
+      "get": {
+        "summary": "Paginated orders of a customer (authenticated)",
+        "parameters": [
+          { "name": "id",   "in": "path",  "required": true, "schema": { "type": "integer" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "size", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": { "200": {}, "401": {}, "404": {} }
+      }
+    },
+    "/api/v1/orders": {
+      "get": {
+        "summary": "Paginated order list with optional filters (authenticated)",
+        "parameters": [
+          { "name": "page",       "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "size",       "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "customerId", "in": "query", "schema": { "type": "integer" } },
+          { "name": "productId",  "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponsePageOrderResponse" } } } }, "401": {} }
+      },
+      "post": {
+        "summary": "Create order (ADMIN; total computed by server)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderRequest" } } } },
+        "responses": { "201": {}, "400": {}, "401": {}, "403": {}, "404": {} }
+      }
+    },
+    "/api/v1/orders/{id}": {
+      "get": {
+        "summary": "Order detail with customer and product embedded (authenticated)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseOrderResponse" } } } }, "401": {}, "404": {} }
+      },
+      "put": {
+        "summary": "Update order (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderRequest" } } } },
+        "responses": { "200": {}, "400": {}, "401": {}, "403": {}, "404": {} }
+      },
+      "delete": {
+        "summary": "Delete order (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {}, "404": {} }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success":   { "type": "boolean" },
+          "message":   { "type": "string" },
+          "data":      { },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PageResponse": {
+        "type": "object",
+        "properties": {
+          "content":       { "type": "array", "items": {} },
+          "page":          { "type": "integer" },
+          "size":          { "type": "integer" },
+          "totalElements": { "type": "integer" },
+          "totalPages":    { "type": "integer" }
+        }
+      },
+      "CategoryRequest": {
+        "type": "object",
+        "required": ["category_name"],
+        "properties": { "category_name": { "type": "string" } }
+      },
+      "CategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id":            { "type": "integer" },
+          "category_name": { "type": "string" },
+          "created_at":    { "type": "string", "format": "date-time" },
+          "updated_at":    { "type": "string", "format": "date-time" },
+          "products":      { "type": "array", "items": { "$ref": "#/components/schemas/ProductResponse" }, "description": "Filled on detail endpoint only" }
+        }
+      },
+      "ProductRequest": {
+        "type": "object",
+        "required": ["category_id", "product_name", "unit_price"],
+        "properties": {
+          "category_id":  { "type": "integer" },
+          "product_name": { "type": "string" },
+          "unit_price":   { "type": "number", "minimum": 0.01 }
+        }
+      },
+      "ProductResponse": {
+        "type": "object",
+        "properties": {
+          "id":            { "type": "integer" },
+          "product_name":  { "type": "string" },
+          "unit_price":    { "type": "number" },
+          "category_id":   { "type": "integer" },
+          "category_name": { "type": "string" }
+        }
+      },
+      "CustomerRequest": {
+        "type": "object",
+        "required": ["first_name", "last_name", "telephone", "email", "address"],
+        "properties": {
+          "first_name": { "type": "string" },
+          "last_name":  { "type": "string" },
+          "telephone":  { "type": "string", "pattern": "^\\+?[0-9()\\-\\s]{7,20}$" },
+          "email":      { "type": "string", "format": "email" },
+          "address":    { "type": "string" }
+        }
+      },
+      "CustomerResponse": {
+        "type": "object",
+        "properties": {
+          "id":         { "type": "integer" },
+          "first_name": { "type": "string" },
+          "last_name":  { "type": "string" },
+          "telephone":  { "type": "string" },
+          "email":      { "type": "string" },
+          "address":    { "type": "string" },
+          "products":   { "type": "array", "items": { "$ref": "#/components/schemas/ProductResponse" }, "description": "Products the customer ordered -- detail endpoint only" }
+        }
+      },
+      "OrderRequest": {
+        "type": "object",
+        "required": ["customer_id", "product_id", "quantity"],
+        "properties": {
+          "customer_id": { "type": "integer" },
+          "product_id":  { "type": "integer" },
+          "quantity":    { "type": "integer", "minimum": 1 }
+        }
+      },
+      "OrderResponse": {
+        "type": "object",
+        "properties": {
+          "id":       { "type": "integer" },
+          "customer": { "$ref": "#/components/schemas/CustomerResponse" },
+          "product":  { "$ref": "#/components/schemas/ProductResponse" },
+          "quantity": { "type": "integer" },
+          "total":    { "type": "number", "description": "Computed by server (quantity * unit_price)" }
+        }
+      },
+      "ApiResponseCategoryResponse":       { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "$ref": "#/components/schemas/CategoryResponse" } } },
+      "ApiResponsePageCategoryResponse":   { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageResponse" }], "properties": { "content": { "type": "array", "items": { "$ref": "#/components/schemas/CategoryResponse" } } } } } },
+      "ApiResponsePageProductResponse":    { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageResponse" }], "properties": { "content": { "type": "array", "items": { "$ref": "#/components/schemas/ProductResponse" } } } } } },
+      "ApiResponsePageCustomerResponse":   { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageResponse" }], "properties": { "content": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerResponse" } } } } } },
+      "ApiResponseCustomerResponse":       { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "$ref": "#/components/schemas/CustomerResponse" } } },
+      "ApiResponsePageOrderResponse":      { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageResponse" }], "properties": { "content": { "type": "array", "items": { "$ref": "#/components/schemas/OrderResponse" } } } } } },
+      "ApiResponseOrderResponse":          { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "$ref": "#/components/schemas/OrderResponse" } } }
+    },
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    }
+  },
+  "security": [{ "bearerAuth": [] }]
+}
