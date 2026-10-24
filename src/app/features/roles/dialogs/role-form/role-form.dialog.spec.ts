@@ -1,7 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { RoleFormDialog } from './role-form.dialog';
 import { Roles } from '../../roles';
@@ -14,7 +15,7 @@ const rolesMock = {
   updateRole: () => of({ ...roleStub, role_name: 'SUPERADMIN' }),
 };
 
-const dialogRefMock = { close: jest.fn() };
+const dialogRefMock = { close: vi.fn() };
 
 describe('RoleFormDialog -- create mode', () => {
   let fixture: ComponentFixture<RoleFormDialog>;
@@ -55,7 +56,7 @@ describe('RoleFormDialog -- create mode', () => {
 
   it('shows serverError on failure', async () => {
     const error: AppError = { kind: 'BUSINESS_RULE', status: 422, message: 'Conflict' };
-    jest.spyOn(rolesMock, 'createRole').mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(rolesMock, 'createRole').mockReturnValueOnce(throwError(() => error));
     component['form'].setValue({ role_name: 'ADMIN' });
     (component as unknown as { submit: () => void }).submit();
     await fixture.whenStable();
@@ -103,3 +104,4 @@ describe('RoleFormDialog -- edit mode', () => {
     );
   });
 });
+
