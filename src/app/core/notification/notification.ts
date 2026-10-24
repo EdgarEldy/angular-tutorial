@@ -49,6 +49,17 @@ export class NotificationService {
     this.show(message, 'info', duration);
   }
 
+  /**
+   * Opens a MatSnackBar with a CSS panel class that maps to the severity colour.
+   *
+   * Panel classes (`snack-success`, `snack-error`, etc.) must be defined in the
+   * global stylesheet because Angular Material injects the overlay outside the
+   * component's shadow. The Dismiss action closes the bar before the timeout.
+   *
+   * @param message - text to display
+   * @param severity - controls the CSS class applied to the panel
+   * @param duration - auto-dismiss timeout in milliseconds
+   */
   private show(message: string, severity: NotificationSeverity, duration: number): void {
     const config: MatSnackBarConfig = {
       duration,
