@@ -35,7 +35,7 @@
           color="primary"
           type="submit"
           class="full-width"
-          [disabled]="loading()">
+          [disabled]="loading() || form.invalid">
           @if (loading()) {
             <mat-spinner diameter="20" />
           } @else {
