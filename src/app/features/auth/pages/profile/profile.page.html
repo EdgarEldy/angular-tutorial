@@ -1,0 +1,64 @@
+<div class="profile-container">
+  @if (loading()) {
+    <div class="center">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (error(); as e) {
+    <div class="center">
+      <p class="error-text">{{ e.message }}</p>
+      <button mat-raised-button color="primary" (click)="loadProfile()">Retry</button>
+    </div>
+  } @else if (user(); as u) {
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>account_circle</mat-icon>
+        <mat-card-title>{{ u.first_name }} {{ u.last_name }}</mat-card-title>
+        <mat-card-subtitle>{{ u.email }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <section class="status-row">
+          @if (u.enabled) {
+            <mat-chip color="primary" highlighted>Active</mat-chip>
+          } @else {
+            <mat-chip>Pending activation</mat-chip>
+          }
+          @if (u.account_locked) {
+            <mat-chip color="warn" highlighted>Locked</mat-chip>
+          }
+        </section>
+
+        <mat-divider class="divider" />
+
+        <section>
+          <h3 class="section-title">Roles</h3>
+          <div class="chip-list">
+            @for (role of roles(); track role) {
+              <mat-chip>{{ role }}</mat-chip>
+            } @empty {
+              <span class="empty-hint">No roles assigned</span>
+            }
+          </div>
+        </section>
+
+        <section>
+          <h3 class="section-title">Permissions</h3>
+          <div class="chip-list">
+            @for (perm of permissions(); track perm) {
+              <mat-chip>{{ perm }}</mat-chip>
+            } @empty {
+              <span class="empty-hint">No permissions assigned</span>
+            }
+          </div>
+        </section>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="openEditDialog()">
+          <mat-icon>edit</mat-icon>
+          Edit profile
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+</div>
