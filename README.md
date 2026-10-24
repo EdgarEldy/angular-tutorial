@@ -409,18 +409,18 @@ Tests must not require the real backends to be running. Test files and test name
 ### Tasks
 
 - [x] Create the project with Angular CLI **21** in the current repository root (standalone, SCSS, routing, no SSR, existing git repository kept): `npx @angular/cli@21 new angular-tutorial --directory . --style=scss --ssr=false --skip-git`. `ng new` generates its own `README.md` and would replace this one: keep a copy of this file and restore it right after the generation. Confirm with `ng version` that the project is on Angular 21, and keep strict TypeScript and strict templates enabled.
-- [ ] Install the UI and tooling with `ng add @angular/material` and `ng add angular-eslint`; add Prettier. `npm run lint` must pass.
-- [ ] Environments: run `ng generate environments`, then add `identityApiUrl` (`/api`) and `apiUrl` (`/api/v1`).
-- [ ] `proxy.conf.json`: `/api/v1` to the business API first, then `/api` to the identity API; wire it in `angular.json` for `ng serve`.
-- [ ] Generic API models (`ApiResponse`, `PageResponse`, `ProblemDetail`) in `shared/models`, generated with `ng generate interface ... --type=model`.
-- [ ] `authInterceptor` and `errorInterceptor` (`ng generate interceptor`, functional), `error-mapper.ts` and `AppError`, registered in `app.config.ts` with `provideHttpClient(withInterceptors([...]))`, with unit tests for every status mapping
-- [ ] App shell: Material toolbar + sidenav + `router-outlet`, navigation entries for each domain (entries for not-yet-implemented features are added by their own branch), not-found page and a "not allowed" page, global loading/error primitives in `shared/ui`, shared `confirm-dialog`
-- [ ] `NotificationService` (snackbar) used by all features for success and error messages
-- [ ] Pagination helper shared by every list: maps Angular Material's `MatPaginator` (`pageIndex`, `pageSize`, `sort`) to the backend's `page`, `size`, `sort` parameters
-- [ ] `MoneyPipe` in `shared/pipes` (`ng generate pipe shared/pipes/money`): formats a number as a locale-aware currency string; used in every screen that displays `unit_price` or `total`
-- [ ] `Dockerfile` (multi-stage: Node build, then nginx serving `dist` and proxying `/api/v1` to the business API and `/api` to the identity API), `nginx.conf`, and a `docker-compose.yml` that runs the frontend and expects both backends reachable (either as services built from the backend repositories or via `host.docker.internal`; document the chosen option)
-- [ ] `.github/workflows/ci.yml`: install, lint, test, build on every push and pull request
-- [ ] Replace this README's "How to follow" commands if the real commands differ
+- [x] Install the UI and tooling with `ng add @angular/material` and `ng add angular-eslint`; add Prettier. `npm run lint` must pass.
+- [x] Environments: run `ng generate environments`, then add `identityApiUrl` (`/api`) and `apiUrl` (`/api/v1`).
+- [x] `proxy.conf.json`: `/api/v1` to the business API first, then `/api` to the identity API; wire it in `angular.json` for `ng serve`.
+- [x] Generic API models (`ApiResponse`, `PageResponse`, `ProblemDetail`) in `shared/models`, generated with `ng generate interface ... --type=model`.
+- [x] `authInterceptor` and `errorInterceptor` (`ng generate interceptor`, functional), `error-mapper.ts` and `AppError`, registered in `app.config.ts` with `provideHttpClient(withInterceptors([...]))`, with unit tests for every status mapping
+- [x] App shell: Material toolbar + sidenav + `router-outlet`, navigation entries for each domain (entries for not-yet-implemented features are added by their own branch), not-found page and a "not allowed" page, global loading/error primitives in `shared/ui`, shared `confirm-dialog`
+- [x] `NotificationService` (snackbar) used by all features for success and error messages
+- [x] Pagination helper shared by every list: maps Angular Material's `MatPaginator` (`pageIndex`, `pageSize`, `sort`) to the backend's `page`, `size`, `sort` parameters
+- [x] `MoneyPipe` in `shared/pipes` (`ng generate pipe shared/pipes/money`): formats a number as a locale-aware currency string; used in every screen that displays `unit_price` or `total`
+- [x] `Dockerfile` (multi-stage: Node build, then nginx serving `dist` and proxying `/api/v1` to the business API and `/api` to the identity API), `nginx.conf`, and a `docker-compose.yml` that runs the frontend and expects both backends reachable (either as services built from the backend repositories or via `host.docker.internal`; document the chosen option)
+- [x] `.github/workflows/ci.yml`: install, lint, test, build on every push and pull request
+- [x] Replace this README's "How to follow" commands if the real commands differ
 
 ## feature/auth
 
