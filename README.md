@@ -439,13 +439,13 @@ Depends on `feature/core-architecture`.
 
 ### Tasks
 
-- [ ] `AuthService` (session signals, token storage, `register`, `login`, `logout`, `activateAccount`, `forgotPassword`, `resetPassword`, `loadCurrentUser`, `hasRole`, `hasPermission`), `jwt.ts`, the three guards (`authGuard`, `roleGuard`, `permissionGuard`) and the `appHasPermission` / `appHasRole` directives, with tests
-- [ ] The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, required names)
-- [ ] A `401` on login (wrong credentials, locked or disabled account) shows the backend message on the form, without a redirect loop
-- [ ] On a `400` returned by `register` or `reset-password`, map `fieldErrors` onto the form fields and show an invalid-token message on the page
-- [ ] Return-URL handling after a forced redirect to `/login`
-- [ ] Toolbar: show the current user's name with a menu (profile, logout) when authenticated, login / register links otherwise; the "Administration" entry is shown to admins only
-- [ ] Tests: login and register error mapping, JWT decoding and session restore, guards, directives, token added only to the API base URLs, logout clears the session when the call fails
+- [x] `AuthService` (session signals, token storage, `register`, `login`, `logout`, `activateAccount`, `forgotPassword`, `resetPassword`, `loadCurrentUser`, `hasRole`, `hasPermission`), `jwt.ts`, the three guards (`authGuard`, `roleGuard`, `permissionGuard`) and the `appHasPermission` / `appHasRole` directives, with tests
+- [x] The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, required names)
+- [x] A `401` on login (wrong credentials, locked or disabled account) shows the backend message on the form, without a redirect loop
+- [x] On a `400` returned by `register` or `reset-password`, map `fieldErrors` onto the form fields and show an invalid-token message on the page
+- [x] Return-URL handling after a forced redirect to `/login`
+- [x] Toolbar: show the current user's name with a menu (profile, logout) when authenticated, login / register links otherwise; the "Administration" entry is shown to admins only
+- [x] Tests: login and register error mapping, JWT decoding and session restore, guards, directives, token added only to the API base URLs, logout clears the session when the call fails
 
 ## feature/rbac
 
