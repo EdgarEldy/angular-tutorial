@@ -9,54 +9,93 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { firstValueFrom } from 'rxjs';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import { authInterceptor } from './auth-interceptor';
+import { environment } from '../../../environments/environment';
+
+function buildJwt(payload: Record<string, unknown>): string {
+  const body = btoa(JSON.stringify(payload))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return `h.${body}.s`;
+}
+
+const FUTURE_EXP = Math.floor(Date.now() / 1000) + 3600;
+const PAST_EXP = Math.floor(Date.now() / 1000) - 1;
 
 describe('authInterceptor', () => {
   let http: HttpClient;
-  let controller: HttpTestingController;
+  let httpCtrl: HttpTestingController;
 
   beforeEach(() => {
+    localStorage.clear();
+
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
       ],
     });
+
     http = TestBed.inject(HttpClient);
-    controller = TestBed.inject(HttpTestingController);
-    localStorage.clear();
+    httpCtrl = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    controller.verify();
+    httpCtrl.verify();
     localStorage.clear();
   });
 
-  it('does not set Authorization header when no token is stored', async () => {
-    const promise = firstValueFrom(http.get('/api/test'));
-    const req = controller.expectOne('/api/test');
+  it('does not add Authorization header when no token is stored', async () => {
+    const req$ = firstValueFrom(http.get(`${environment.identityApiUrl}/auth/me`));
+    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
     expect(req.request.headers.has('Authorization')).toBe(false);
     req.flush({});
-    await promise;
+    await req$;
   });
 
-  it('sets Authorization Bearer header when a token is stored', async () => {
-    localStorage.setItem('access_token', 'test.jwt.token');
-    const promise = firstValueFrom(http.get('/api/test'));
-    const req = controller.expectOne('/api/test');
-    expect(req.request.headers.get('Authorization')).toBe('Bearer test.jwt.token');
+  it('adds Authorization header for identity API requests with a valid token', async () => {
+    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
+    localStorage.setItem('access_token', token);
+
+    const req$ = firstValueFrom(http.get(`${environment.identityApiUrl}/auth/me`));
+    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
     req.flush({});
-    await promise;
+    await req$;
   });
 
-  it('does not mutate the original request (uses clone)', async () => {
-    localStorage.setItem('access_token', 'abc');
-    const promise = firstValueFrom(http.get('/api/test'));
-    const req = controller.expectOne('/api/test');
-    // The interceptor must clone the request, not mutate it
-    expect(req.request.headers.get('Authorization')).toBe('Bearer abc');
+  it('adds Authorization header for business API requests with a valid token', async () => {
+    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
+    localStorage.setItem('access_token', token);
+
+    const req$ = firstValueFrom(http.get(`${environment.apiUrl}/products`));
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/products`);
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
     req.flush({});
-    await promise;
+    await req$;
+  });
+
+  it('does not add Authorization header when the token is expired', async () => {
+    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: PAST_EXP, jti: 'x' });
+    localStorage.setItem('access_token', token);
+
+    const req$ = firstValueFrom(http.get(`${environment.identityApiUrl}/auth/me`));
+    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    expect(req.request.headers.has('Authorization')).toBe(false);
+    req.flush({});
+    await req$;
+  });
+
+  it('does not add Authorization header for non-API requests', async () => {
+    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
+    localStorage.setItem('access_token', token);
+
+    const req$ = firstValueFrom(http.get('https://cdn.example.com/image.png'));
+    const req = httpCtrl.expectOne('https://cdn.example.com/image.png');
+    expect(req.request.headers.has('Authorization')).toBe(false);
+    req.flush('data');
+    await req$;
   });
 });
