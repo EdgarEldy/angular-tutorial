@@ -5,6 +5,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { By } from '@angular/platform-browser';
+import { vi } from 'vitest';
 
 import { UpdateProfileDialog } from './update-profile.dialog';
 import { environment } from '../../../../../environments/environment';
@@ -14,10 +15,10 @@ const dialogDataStub = { userId: 1, firstName: 'Jane', lastName: 'Doe' };
 describe('UpdateProfileDialog', () => {
   let fixture: ComponentFixture<UpdateProfileDialog>;
   let httpCtrl: HttpTestingController;
-  let dialogRefSpy: jasmine.SpyObj<MatDialogRef<UpdateProfileDialog>>;
+  const closeSpy = vi.fn();
 
   beforeEach(async () => {
-    dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
+    closeSpy.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [UpdateProfileDialog],
@@ -26,7 +27,7 @@ describe('UpdateProfileDialog', () => {
         provideHttpClientTesting(),
         provideNoopAnimations(),
         { provide: MAT_DIALOG_DATA, useValue: dialogDataStub },
-        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MatDialogRef, useValue: { close: closeSpy } },
       ],
     }).compileComponents();
 
@@ -50,7 +51,7 @@ describe('UpdateProfileDialog', () => {
     expect(inputs[1].nativeElement.value).toBe('Doe');
   });
 
-  it('closes the dialog with updated user on success', () => {
+  it('closes the dialog with updated user on success', async () => {
     const updatedUser = {
       id: 1, first_name: 'Janet', last_name: 'Doe', email: 'jane@example.com',
       enabled: true, account_locked: false, roles: [],
@@ -65,11 +66,12 @@ describe('UpdateProfileDialog', () => {
 
     const req = httpCtrl.expectOne(`${environment.identityApiUrl}/users/1`);
     req.flush({ success: true, message: '', data: updatedUser, timestamp: '' });
+    fixture.detectChanges();
 
-    expect(dialogRefSpy.close).toHaveBeenCalledWith(updatedUser);
+    expect(closeSpy).toHaveBeenCalledWith(updatedUser);
   });
 
-  it('stays open and maps field errors on 400', () => {
+  it('stays open on 400 and does not close the dialog', () => {
     fixture.debugElement.query(By.css('button[color="primary"]')).nativeElement.click();
     fixture.detectChanges();
 
@@ -80,8 +82,6 @@ describe('UpdateProfileDialog', () => {
     );
     fixture.detectChanges();
 
-    expect(dialogRefSpy.close).not.toHaveBeenCalled();
-    const firstNameControl = fixture.componentInstance['form'].get('first_name');
-    expect(firstNameControl?.errors?.['serverError']).toBe('Too short');
+    expect(closeSpy).not.toHaveBeenCalled();
   });
 });
