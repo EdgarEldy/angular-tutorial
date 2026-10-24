@@ -33,7 +33,7 @@
   <button
     mat-raised-button
     color="primary"
-    [disabled]="loading()"
+    [disabled]="loading() || form.invalid"
     (click)="submit()">
     @if (loading()) {
       <mat-spinner diameter="20" />
