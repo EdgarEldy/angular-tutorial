@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    # host.docker.internal is needed so nginx inside the container can reach
+    # the Spring Boot backend running on the host. On Docker Desktop for Mac/
+    # Windows this is automatic; on Linux add --add-host in the build command
+    # or uncomment the extra_hosts line below.
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+    environment:
+      # No build-time env vars are needed: API URLs are resolved at runtime
+      # by nginx (proxy_pass) rather than baked into the Angular bundle.
+      NODE_ENV: production
