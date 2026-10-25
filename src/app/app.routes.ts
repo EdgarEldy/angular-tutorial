@@ -15,11 +15,14 @@ import { roleGuard } from './core/auth/role-guard';
  * at the root level, outside the shell, so they render without the nav bar.
  * The profile route is inside the shell and behind authGuard.
  *
+ * Public features (categories, products) use a second shell group without
+ * any guard so unauthenticated visitors can read them. Angular's router
+ * tries route groups in order and backtracks when no children match, so
+ * the public shell handles /categories and the authenticated shell handles
+ * everything else.
+ *
  * Lazy loading with loadChildren() / loadComponent() demonstrates code-splitting:
  * each feature module is downloaded only when the user first navigates to it.
- *
- * Route guards (authGuard, roleGuard) are wired here for the dashboard and
- * profile; feature-specific guards will be added in later branches.
  */
 export const routes: Routes = [
   // Error pages (outside shell so they render without the nav)
@@ -33,7 +36,32 @@ export const routes: Routes = [
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
 
-  // Authenticated shell
+  // Public shell: categories (and products in feature/products) are readable
+  // by any visitor. The shell still renders the nav bar so the user can
+  // navigate to other areas. No canActivate guard on this group.
+  {
+    path: '',
+    component: ShellComponent,
+    children: [
+      {
+        path: 'categories',
+        loadChildren: () =>
+          import('./features/categories/categories.routes').then(
+            (m) => m.CATEGORIES_ROUTES,
+          ),
+      },
+      // Products (feature/products branch) -- will be public too
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/not-found/not-found').then(
+            (m) => m.NotFoundComponent,
+          ),
+      },
+    ],
+  },
+
+  // Authenticated shell: everything behind authGuard
   {
     path: '',
     component: ShellComponent,
@@ -46,35 +74,27 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
+          import('./features/not-found/not-found').then(
+            (m) => m.NotFoundComponent,
+          ),
       },
 
-      // Categories (feature/categories branch)
-      {
-        path: 'categories',
-        loadComponent: () =>
-          import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
-      },
-
-      // Products (feature/products branch)
-      {
-        path: 'products',
-        loadComponent: () =>
-          import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
-      },
-
-      // Customers (feature/customers branch)
+      // Customers (feature/customers branch) -- behind authGuard
       {
         path: 'customers',
         loadComponent: () =>
-          import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
+          import('./features/not-found/not-found').then(
+            (m) => m.NotFoundComponent,
+          ),
       },
 
-      // Orders (feature/orders branch)
+      // Orders (feature/orders branch) -- behind authGuard
       {
         path: 'orders',
         loadComponent: () =>
-          import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
+          import('./features/not-found/not-found').then(
+            (m) => m.NotFoundComponent,
+          ),
       },
 
       // Administration area: ADMIN role required for all /admin/* routes
@@ -87,12 +107,16 @@ export const routes: Routes = [
           {
             path: 'users',
             loadChildren: () =>
-              import('./features/users/users.routes').then((m) => m.USERS_ROUTES),
+              import('./features/users/users.routes').then(
+                (m) => m.USERS_ROUTES,
+              ),
           },
           {
             path: 'roles',
             loadChildren: () =>
-              import('./features/roles/roles.routes').then((m) => m.ROLES_ROUTES),
+              import('./features/roles/roles.routes').then(
+                (m) => m.ROLES_ROUTES,
+              ),
           },
           {
             path: 'permissions',
