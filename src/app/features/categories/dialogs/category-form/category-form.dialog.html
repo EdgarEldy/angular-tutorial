@@ -1,0 +1,38 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit category' : 'New category' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="category-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Category name</mat-label>
+      <input matInput formControlName="category_name" placeholder="e.g. Electronics" />
+      @if (form.get('category_name')?.hasError('required')) {
+        <mat-error>Category name is required.</mat-error>
+      }
+      @if (form.get('category_name')?.hasError('serverError')) {
+        <mat-error>{{ form.get('category_name')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Server-level errors that are not tied to a specific field -->
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    form="category-form"
+    type="submit"
+    [disabled]="loading() || form.invalid"
+    (click)="submit()">
+    @if (loading()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      {{ isEdit ? 'Save' : 'Create' }}
+    }
+  </button>
+</mat-dialog-actions>
