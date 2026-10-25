@@ -79,12 +79,12 @@ export const routes: Routes = [
           ),
       },
 
-      // Customers (feature/customers branch) -- behind authGuard
+      // Customers (feature/customers branch) -- behind authGuard on each child route
       {
         path: 'customers',
-        loadComponent: () =>
-          import('./features/not-found/not-found').then(
-            (m) => m.NotFoundComponent,
+        loadChildren: () =>
+          import('./features/customers/customers.routes').then(
+            (m) => m.CUSTOMERS_ROUTES,
           ),
       },
 
