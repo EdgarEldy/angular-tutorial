@@ -529,11 +529,11 @@ Depends on `feature/core-architecture`.
 
 ### Tasks
 
-- [ ] `CustomersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
-- [ ] Validation in the dialog matching the backend (required fields, valid email, telephone pattern)
-- [ ] A duplicate email or any other `422` shows the backend message in the dialog
-- [ ] Handle the backend rejecting a deletion (for example a customer with orders) by showing its message
-- [ ] Tests
+- [x] `CustomersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
+- [x] Validation in the dialog matching the backend (required fields, valid email, telephone pattern)
+- [x] A duplicate email or any other `422` shows the backend message in the dialog
+- [x] Handle the backend rejecting a deletion (for example a customer with orders) by showing its message
+- [x] Tests
 
 ## feature/orders
 
