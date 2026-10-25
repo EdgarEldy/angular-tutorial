@@ -1,0 +1,41 @@
+.back-link {
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin-bottom: 0.25rem;
+}
+
+.meta {
+  display: flex;
+  gap: 1.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+h2 {
+  margin-bottom: 0.5rem;
+}
+
+table {
+  width: 100%;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.error-text {
+  color: var(--mat-sys-error);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 1rem 0;
+  color: var(--mat-sys-on-surface-variant);
+}
