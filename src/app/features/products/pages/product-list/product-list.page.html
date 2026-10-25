@@ -1,0 +1,123 @@
+<div class="page-header">
+  <h1>Products</h1>
+  <!-- Only ADMIN users see the create button; the backend enforces the same rule -->
+  <button *appHasRole="'ADMIN'" mat-raised-button color="primary" (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    New product
+  </button>
+</div>
+
+<!-- Filter toolbar: any change resets to page 0 and reloads -->
+<div class="filter-bar">
+
+  <!-- Category select: "All" maps to undefined (no filter sent to backend) -->
+  <mat-form-field appearance="outline" class="filter-field">
+    <mat-label>Category</mat-label>
+    <mat-select (selectionChange)="onCategoryFilter($event.value)" value="">
+      <mat-option value="">All categories</mat-option>
+      @for (cat of categories(); track cat.id) {
+        <mat-option [value]="cat.id">{{ cat.category_name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <!-- Name search: debounced in the component constructor via toObservable -->
+  <mat-form-field appearance="outline" class="filter-field">
+    <mat-label>Product name</mat-label>
+    <input
+      matInput
+      placeholder="Search by name..."
+      (input)="onNameFilter($any($event.target).value)" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <!-- Min price: reloads on Enter or blur -->
+  <mat-form-field appearance="outline" class="filter-field filter-field--narrow">
+    <mat-label>Min price</mat-label>
+    <input
+      matInput
+      type="number"
+      min="0"
+      placeholder="0.00"
+      [ngModel]="filterMinPrice()"
+      (ngModelChange)="filterMinPrice.set($event)"
+      (blur)="onPriceFilter()"
+      (keyup.enter)="onPriceFilter()" />
+  </mat-form-field>
+
+  <!-- Max price: reloads on Enter or blur -->
+  <mat-form-field appearance="outline" class="filter-field filter-field--narrow">
+    <mat-label>Max price</mat-label>
+    <input
+      matInput
+      type="number"
+      min="0"
+      placeholder="∞"
+      [ngModel]="filterMaxPrice()"
+      (ngModelChange)="filterMaxPrice.set($event)"
+      (blur)="onPriceFilter()"
+      (keyup.enter)="onPriceFilter()" />
+  </mat-form-field>
+</div>
+
+@if (loading()) {
+  <div class="center">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (error(); as e) {
+  <div class="center">
+    <p class="error-text">{{ e.message }}</p>
+    <button mat-stroked-button (click)="loadProducts()">Retry</button>
+  </div>
+} @else if (products().length === 0) {
+  <p class="empty-state">No products found.</p>
+} @else {
+  <table mat-table [dataSource]="products()" class="mat-elevation-z2">
+
+    <!-- Product name column -->
+    <ng-container matColumnDef="product_name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let p">{{ p.product_name }}</td>
+    </ng-container>
+
+    <!-- Category name column: denormalized on the product, no extra call needed -->
+    <ng-container matColumnDef="category_name">
+      <th mat-header-cell *matHeaderCellDef>Category</th>
+      <td mat-cell *matCellDef="let p">{{ p.category_name }}</td>
+    </ng-container>
+
+    <!-- Unit price column: formatted with the shared MoneyPipe -->
+    <ng-container matColumnDef="unit_price">
+      <th mat-header-cell *matHeaderCellDef>Unit price</th>
+      <!-- MoneyPipe uses Intl.NumberFormat for locale-aware currency formatting -->
+      <td mat-cell *matCellDef="let p">{{ p.unit_price | money }}</td>
+    </ng-container>
+
+    <!-- Row actions column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let p">
+        <!-- Edit and delete are visible to ADMIN only -->
+        <ng-container *appHasRole="'ADMIN'">
+          <button mat-icon-button aria-label="Edit product" (click)="openEditDialog(p)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" aria-label="Delete product" (click)="deleteProduct(p)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <!-- MatPaginator is 0-based; the backend page param is also 0-based -->
+  <mat-paginator
+    [length]="totalElements()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[5, 10, 25]"
+    (page)="onPage($event)"
+    aria-label="Select page of products" />
+}
