@@ -135,22 +135,25 @@ describe('Products service', () => {
     expect(result.product_name).toBe('Updated');
   });
 
-  it('updateProduct propagates 409 as CONFLICT AppError', async () => {
+  it('updateProduct propagates a 409 HTTP error to the subscriber', async () => {
+    // The service itself does not map errors -- the errorInterceptor (tested separately)
+    // maps HttpErrorResponse to AppError. Here we only verify that updateProduct
+    // lets an HTTP error through so the interceptor can act on it.
     const promise = firstValueFrom(
       service.updateProduct(1, { category_id: 2, product_name: 'X', unit_price: 1 }),
     );
     const req = httpCtrl.expectOne(`${BASE}/1`);
     req.flush(
-      { success: false, message: 'Conflict', data: { title: 'Conflict', status: 409, detail: 'Modified elsewhere', instance: '' } },
+      { success: false, message: 'Conflict', data: null },
       { status: 409, statusText: 'Conflict' },
     );
     try {
       await promise;
       throw new Error('Expected error was not thrown');
     } catch (err: unknown) {
-      const appError = err as { kind: string; status: number };
-      expect(appError.kind).toBe('CONFLICT');
-      expect(appError.status).toBe(409);
+      // Without the errorInterceptor the raw HttpErrorResponse is propagated
+      const httpErr = err as { status: number };
+      expect(httpErr.status).toBe(409);
     }
   });
 
