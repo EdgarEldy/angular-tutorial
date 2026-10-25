@@ -92,10 +92,9 @@ describe('CategoryListPage', () => {
     // Before detectChanges the component is in its initial state
     // loading signal starts as true, so the spinner should be present
     fixture.detectChanges();
-    // After initial detectChanges, the request is in flight
-    const spinner = fixture.nativeElement.querySelector('mat-spinner');
-    // Spinner may or may not exist depending on when the mock resolves
-    // Just verify the component was created without error
+    // After initial detectChanges, the request is in flight.
+    // The mock resolves synchronously so loading will already be false.
+    // Just verify the component rendered without errors.
     expect(component).toBeTruthy();
   });
 });
