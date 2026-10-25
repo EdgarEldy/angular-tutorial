@@ -549,11 +549,11 @@ Depends on `feature/products` and `feature/customers`.
 
 ### Tasks
 
-- [ ] `OrdersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
-- [ ] The customer and product selects reuse the customers and products services (first page with a large `size`)
-- [ ] The order dialog shows a **preview** of the total (`quantity * unit_price`) clearly labelled as an estimate; after saving, display the server's `total`
-- [ ] The table shows `customer` and `product` names from the embedded objects, with no extra call per row
-- [ ] Tests: filter parameters, preview vs server total, dialog error display
+- [x] `OrdersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
+- [x] The customer and product selects reuse the customers and products services (first page with a large `size`)
+- [x] The order dialog shows a **preview** of the total (`quantity * unit_price`) clearly labelled as an estimate; after saving, display the server's `total`
+- [x] The table shows `customer` and `product` names from the embedded objects, with no extra call per row
+- [x] Tests: filter parameters, preview vs server total, dialog error display
 
 ## Order of work
 
