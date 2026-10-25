@@ -57,7 +57,7 @@
         <mat-error>Telephone is required.</mat-error>
       }
       @if (form.get('telephone')?.hasError('pattern')) {
-        <!-- The pattern ^\+?[0-9()\-\s]{7,20}$ allows international format -->
+        <!-- The pattern ^\+?[0-9()\s-]{7,20}$ allows international format -->
         <mat-error>
           Please enter a valid telephone number (7-20 digits, spaces, +, - and () allowed).
         </mat-error>
