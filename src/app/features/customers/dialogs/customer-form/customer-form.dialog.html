@@ -1,0 +1,105 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit customer' : 'New customer' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="customer-form">
+
+    <!-- First name field -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>First name</mat-label>
+      <input matInput formControlName="first_name" placeholder="e.g. Alice" />
+      @if (form.get('first_name')?.hasError('required')) {
+        <mat-error>First name is required.</mat-error>
+      }
+      @if (getServerError('first_name'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Last name field -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Last name</mat-label>
+      <input matInput formControlName="last_name" placeholder="e.g. Smith" />
+      @if (form.get('last_name')?.hasError('required')) {
+        <mat-error>Last name is required.</mat-error>
+      }
+      @if (getServerError('last_name'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Email field: validated with Validators.email -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input
+        matInput
+        type="email"
+        formControlName="email"
+        placeholder="e.g. alice@example.com" />
+      @if (form.get('email')?.hasError('required')) {
+        <mat-error>Email is required.</mat-error>
+      }
+      @if (form.get('email')?.hasError('email')) {
+        <mat-error>Please enter a valid email address.</mat-error>
+      }
+      @if (getServerError('email'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Telephone field: pattern mirrors the backend rule -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Telephone</mat-label>
+      <input
+        matInput
+        formControlName="telephone"
+        placeholder="e.g. +1-555-0100" />
+      @if (form.get('telephone')?.hasError('required')) {
+        <mat-error>Telephone is required.</mat-error>
+      }
+      @if (form.get('telephone')?.hasError('pattern')) {
+        <!-- The pattern ^\+?[0-9()\-\s]{7,20}$ allows international format -->
+        <mat-error>
+          Please enter a valid telephone number (7-20 digits, spaces, +, - and () allowed).
+        </mat-error>
+      }
+      @if (getServerError('telephone'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Address field -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address</mat-label>
+      <input matInput formControlName="address" placeholder="e.g. 1 Main St" />
+      @if (form.get('address')?.hasError('required')) {
+        <mat-error>Address is required.</mat-error>
+      }
+      @if (getServerError('address'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Server-level errors not tied to a specific field (e.g. 422 duplicate email) -->
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    form="customer-form"
+    type="submit"
+    [disabled]="saving() || form.invalid"
+    (click)="submit()">
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      {{ isEdit ? 'Save' : 'Create' }}
+    }
+  </button>
+</mat-dialog-actions>
