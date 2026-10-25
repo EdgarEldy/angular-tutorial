@@ -1,0 +1,86 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit product' : 'New product' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="product-form">
+
+    <!-- Product name field -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Product name</mat-label>
+      <input matInput formControlName="product_name" placeholder="e.g. Wireless Keyboard" />
+      @if (form.get('product_name')?.hasError('required')) {
+        <mat-error>Product name is required.</mat-error>
+      }
+      @if (form.get('product_name')?.hasError('serverError')) {
+        <mat-error>{{ form.get('product_name')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Unit price field: type="number" with min=0.01 mirrors the backend rule -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Unit price</mat-label>
+      <input
+        matInput
+        type="number"
+        min="0.01"
+        step="0.01"
+        formControlName="unit_price"
+        placeholder="0.00" />
+      @if (form.get('unit_price')?.hasError('required')) {
+        <mat-error>Unit price is required.</mat-error>
+      }
+      @if (form.get('unit_price')?.hasError('min')) {
+        <mat-error>Unit price must be greater than 0.</mat-error>
+      }
+      @if (form.get('unit_price')?.hasError('serverError')) {
+        <mat-error>{{ form.get('unit_price')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Category select: loaded from CategoriesService to avoid duplicating the call -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category_id">
+        @for (cat of categories(); track cat.id) {
+          <mat-option [value]="cat.id">{{ cat.category_name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('category_id')?.hasError('required')) {
+        <mat-error>Category is required.</mat-error>
+      }
+      @if (form.get('category_id')?.hasError('serverError')) {
+        <mat-error>{{ form.get('category_id')?.getError('serverError') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Server-level errors not tied to a specific field -->
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+
+    <!-- 409 Conflict: the product was modified elsewhere.
+         Offer to close the dialog (the user can reopen it to load the latest version). -->
+    @if (conflictError()) {
+      <button mat-stroked-button type="button" (click)="dialogRef.close()">
+        Close and reload
+      </button>
+    }
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    form="product-form"
+    type="submit"
+    [disabled]="saving() || form.invalid"
+    (click)="submit()">
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      {{ isEdit ? 'Save' : 'Create' }}
+    }
+  </button>
+</mat-dialog-actions>
