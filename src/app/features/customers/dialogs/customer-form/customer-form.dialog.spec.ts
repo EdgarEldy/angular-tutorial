@@ -173,10 +173,13 @@ describe('CustomerFormDialog -- create mode', () => {
     };
     customersMock.createCustomer.mockReturnValue(throwError(() => err));
 
+    // Use a frontend-valid email so the form passes and submit() is not short-circuited.
+    // The backend may still reject it (e.g. a stricter domain-level rule) and return
+    // a fieldErrors entry that we map onto the control.
     component['form'].setValue({
       first_name: 'Bob',
       last_name: 'Jones',
-      email: 'bad',
+      email: 'rejected@example.com',
       telephone: '+1-555-0200',
       address: '2 Oak Ave',
     });

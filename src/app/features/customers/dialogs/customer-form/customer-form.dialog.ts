@@ -36,10 +36,12 @@ export interface CustomerFormDialogData {
 
 /**
  * Telephone pattern from the API contract.
- * Required, matches ^\+?[0-9()\-\s]{7,20}$
+ * Required, matches ^\+?[0-9()\s-]{7,20}$
  * This constant is exported so it can be reused in tests.
  */
-export const TELEPHONE_PATTERN = /^\+?[0-9()\s\-]{7,20}$/;
+// The dash is placed at the end of the character class to avoid the need for
+// escaping (a dash at the end is always treated as a literal in a regex).
+export const TELEPHONE_PATTERN = /^\+?[0-9()\s-]{7,20}$/;
 
 /**
  * Dialog for creating or editing a customer.
@@ -114,7 +116,7 @@ export class CustomerFormDialog {
     ],
     telephone: [
       this.data?.customer?.telephone ?? '',
-      // Validators.pattern mirrors the backend rule ^\+?[0-9()\-\s]{7,20}$
+      // Validators.pattern mirrors the backend rule ^\+?[0-9()\s-]{7,20}$
       [Validators.required, Validators.pattern(TELEPHONE_PATTERN)],
     ],
     address: [
