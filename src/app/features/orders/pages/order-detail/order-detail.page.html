@@ -1,0 +1,54 @@
+<div class="page-actions">
+  <a mat-button routerLink="/orders">
+    <mat-icon>arrow_back</mat-icon>
+    Back to orders
+  </a>
+</div>
+
+@if (loading()) {
+  <div class="center">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (error(); as e) {
+  <div class="center">
+    <p class="error-text">{{ e.message }}</p>
+    <button mat-stroked-button (click)="loadOrder()">Retry</button>
+  </div>
+} @else if (order(); as o) {
+  <mat-card class="detail-card">
+    <mat-card-header>
+      <mat-card-title>Order #{{ o.id }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <h3 class="section-title">Customer</h3>
+      <dl class="info-grid">
+        <dt>Name</dt>
+        <dd>{{ o.customer.first_name }} {{ o.customer.last_name }}</dd>
+        <dt>Email</dt>
+        <dd>{{ o.customer.email }}</dd>
+        <dt>Telephone</dt>
+        <dd>{{ o.customer.telephone }}</dd>
+        <dt>Address</dt>
+        <dd>{{ o.customer.address }}</dd>
+      </dl>
+
+      <h3 class="section-title">Product</h3>
+      <dl class="info-grid">
+        <dt>Name</dt>
+        <dd>{{ o.product.product_name }}</dd>
+        <dt>Unit price</dt>
+        <!-- MoneyPipe formats unit_price as a locale-aware currency string -->
+        <dd>{{ o.product.unit_price | money }}</dd>
+      </dl>
+
+      <h3 class="section-title">Order summary</h3>
+      <dl class="info-grid">
+        <dt>Quantity</dt>
+        <dd>{{ o.quantity }}</dd>
+        <dt>Total</dt>
+        <!-- This total is the server's authoritative value (quantity * unit_price) -->
+        <dd class="total-value">{{ o.total | money }}</dd>
+      </dl>
+    </mat-card-content>
+  </mat-card>
+}
