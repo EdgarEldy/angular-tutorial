@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatDialog } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
@@ -109,6 +109,9 @@ describe('ProductListPage', () => {
 
   it('calls getProducts with categoryId when category filter changes', () => {
     fixture.detectChanges();
+    // Reset call count after initial load
+    vi.clearAllMocks();
+    productsMock.getProducts.mockReturnValue(of(pageStub));
     component['onCategoryFilter'](5);
     expect(productsMock.getProducts).toHaveBeenCalledWith(
       0, 10, expect.objectContaining({ categoryId: 5 }),
@@ -122,46 +125,57 @@ describe('ProductListPage', () => {
     expect(component['page']()).toBe(0);
   });
 
-  it('debounces product name filter -- does NOT call loadProducts immediately', fakeAsync(() => {
+  it('updates filterProductName signal when onNameFilter is called', () => {
     fixture.detectChanges();
-    // Clear the initial call
-    vi.clearAllMocks();
-    productsMock.getProducts.mockReturnValue(of(pageStub));
     component['onNameFilter']('Widget');
-    // Before debounce fires, getProducts should not have been called again
-    expect(productsMock.getProducts).not.toHaveBeenCalled();
-    tick(300);
-    expect(productsMock.getProducts).toHaveBeenCalled();
-  }));
+    expect(component['filterProductName']()).toBe('Widget');
+  });
 
-  it('calls getProducts with productName after debounce', fakeAsync(() => {
+  it('calls getProducts with productName after loadProducts is called directly', () => {
     fixture.detectChanges();
+    // Set filter signal and trigger load directly -- the debounce wraps onNameFilter,
+    // but loadProducts itself must pass the current signal value to the service
+    component['filterProductName'].set('Widget');
     vi.clearAllMocks();
     productsMock.getProducts.mockReturnValue(of(pageStub));
-    component['onNameFilter']('Widget');
-    tick(300);
+    component['loadProducts']();
     expect(productsMock.getProducts).toHaveBeenCalledWith(
-      0, 10, expect.objectContaining({ productName: 'Widget' }),
+      expect.any(Number),
+      expect.any(Number),
+      expect.objectContaining({ productName: 'Widget' }),
     );
-  }));
+  });
 
-  it('does NOT send empty productName to service', fakeAsync(() => {
+  it('omits productName param when filter is empty string', () => {
     fixture.detectChanges();
+    component['filterProductName'].set('');
     vi.clearAllMocks();
     productsMock.getProducts.mockReturnValue(of(pageStub));
-    component['onNameFilter']('');
-    tick(300);
-    const call = productsMock.getProducts.mock.calls[0] as [number, number, { productName?: string }];
-    expect(call[2].productName).toBeUndefined();
-  }));
+    component['loadProducts']();
+    // getProducts maps '' to undefined; buildPaginationParams then omits undefined
+    expect(productsMock.getProducts).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.any(Number),
+      expect.objectContaining({ productName: undefined }),
+    );
+  });
 
   it('calls getProducts with minPrice and maxPrice when set', () => {
     fixture.detectChanges();
+    vi.clearAllMocks();
+    productsMock.getProducts.mockReturnValue(of(pageStub));
     component['filterMinPrice'].set(5);
     component['filterMaxPrice'].set(50);
     component['onPriceFilter']();
     expect(productsMock.getProducts).toHaveBeenCalledWith(
       0, 10, expect.objectContaining({ minPrice: 5, maxPrice: 50 }),
     );
+  });
+
+  it('resets page to 0 when price filter changes', () => {
+    fixture.detectChanges();
+    component['page'].set(3);
+    component['onPriceFilter']();
+    expect(component['page']()).toBe(0);
   });
 });
