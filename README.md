@@ -507,12 +507,12 @@ Depends on `feature/categories`.
 
 ### Tasks
 
-- [ ] `ProductsService`, models, routes, list page, create/edit dialog
-- [ ] Filters: category select, name search (debounced, `productName`), min and max price; any change resets to the first page and re-queries; empty filters are not sent
-- [ ] The table shows `category_name` straight from the product (no extra call per row)
-- [ ] `unit_price` input: numeric, greater than 0 (UX validation), displayed with the currency formatter
-- [ ] Handle `409` on update (product modified elsewhere) as described in error handling
-- [ ] Tests: filter parameters, empty filters omitted, form validation, `409` handling
+- [x] `ProductsService`, models, routes, list page, create/edit dialog
+- [x] Filters: category select, name search (debounced, `productName`), min and max price; any change resets to the first page and re-queries; empty filters are not sent
+- [x] The table shows `category_name` straight from the product (no extra call per row)
+- [x] `unit_price` input: numeric, greater than 0 (UX validation), displayed with the currency formatter
+- [x] Handle `409` on update (product modified elsewhere) as described in error handling
+- [x] Tests: filter parameters, empty filters omitted, form validation, `409` handling
 
 ## feature/customers
 
