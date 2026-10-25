@@ -1,0 +1,94 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit order' : 'New order' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="order-form">
+
+    <!-- Customer select: populated from CustomersService.getCustomers(0, 100) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Customer</mat-label>
+      <mat-select formControlName="customer_id">
+        @for (c of customerOptions(); track c.id) {
+          <mat-option [value]="c.id">{{ c.first_name }} {{ c.last_name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('customer_id')?.hasError('required') && form.get('customer_id')?.touched) {
+        <mat-error>Customer is required.</mat-error>
+      }
+      @if (getServerError('customer_id'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Product select: populated from ProductsService.getProducts(0, 100) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Product</mat-label>
+      <mat-select formControlName="product_id">
+        @for (p of productOptions(); track p.id) {
+          <!-- Display product name + unit price so the user can gauge the cost -->
+          <mat-option [value]="p.id">{{ p.product_name }} ({{ p.unit_price | money }})</mat-option>
+        }
+      </mat-select>
+      @if (form.get('product_id')?.hasError('required') && form.get('product_id')?.touched) {
+        <mat-error>Product is required.</mat-error>
+      }
+      @if (getServerError('product_id'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Quantity field: integer, min 1 -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Quantity</mat-label>
+      <input
+        matInput
+        type="number"
+        min="1"
+        step="1"
+        formControlName="quantity"
+        placeholder="e.g. 1" />
+      @if (form.get('quantity')?.hasError('required')) {
+        <mat-error>Quantity is required.</mat-error>
+      }
+      @if (form.get('quantity')?.hasError('min')) {
+        <!-- Validators.min(1) mirrors the backend constraint: quantity >= 1 -->
+        <mat-error>Quantity must be at least 1.</mat-error>
+      }
+      @if (getServerError('quantity'); as msg) {
+        <mat-error>{{ msg }}</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Preview total: shown only when a product is selected and quantity >= 1.
+         Clearly labelled as an estimate so the user knows the server recomputes
+         the authoritative total on save. -->
+    @if (previewTotal(); as preview) {
+      <div class="preview-total">
+        <span class="preview-label">Estimated total (server will confirm):</span>
+        <span class="preview-value">{{ preview | money }}</span>
+      </div>
+    }
+
+    <!-- Server-level errors not tied to a specific field (e.g. 422) -->
+    @if (serverError()) {
+      <p class="server-error">{{ serverError() }}</p>
+    }
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    form="order-form"
+    type="submit"
+    [disabled]="saving() || form.invalid"
+    (click)="submit()">
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      {{ isEdit ? 'Save' : 'Create' }}
+    }
+  </button>
+</mat-dialog-actions>
