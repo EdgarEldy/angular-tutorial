@@ -88,12 +88,12 @@ export const routes: Routes = [
           ),
       },
 
-      // Orders (feature/orders branch) -- behind authGuard
+      // Orders (feature/orders branch) -- behind authGuard on each child route
       {
         path: 'orders',
-        loadComponent: () =>
-          import('./features/not-found/not-found').then(
-            (m) => m.NotFoundComponent,
+        loadChildren: () =>
+          import('./features/orders/orders.routes').then(
+            (m) => m.ORDERS_ROUTES,
           ),
       },
 
