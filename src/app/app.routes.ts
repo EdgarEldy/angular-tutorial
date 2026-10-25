@@ -50,12 +50,12 @@ export const routes: Routes = [
             (m) => m.CATEGORIES_ROUTES,
           ),
       },
-      // Products (feature/products branch) -- will be public too
+      // Products: public (no guard), lazy-loaded feature routes
       {
         path: 'products',
-        loadComponent: () =>
-          import('./features/not-found/not-found').then(
-            (m) => m.NotFoundComponent,
+        loadChildren: () =>
+          import('./features/products/products.routes').then(
+            (m) => m.PRODUCTS_ROUTES,
           ),
       },
     ],
