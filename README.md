@@ -487,11 +487,11 @@ Depends on `feature/core-architecture`.
 
 ### Tasks
 
-- [ ] `CategoriesService`, models (`CategoryRequest`, `CategoryResponse`), routes, list page, detail page, create/edit dialog
-- [ ] The list shows `category_name` and the dates; it does not rely on `products` (empty in the list)
-- [ ] Deleting a category that still has products returns `422`: show the backend message and keep the row
-- [ ] Expose the categories to the products feature (select and filter) through the categories service, rather than duplicating the call
-- [ ] Tests: list states, dialog validation and error display, delete rejection path
+- [x] `CategoriesService`, models (`CategoryRequest`, `CategoryResponse`), routes, list page, detail page, create/edit dialog
+- [x] The list shows `category_name` and the dates; it does not rely on `products` (empty in the list)
+- [x] Deleting a category that still has products returns `422`: show the backend message and keep the row
+- [x] Expose the categories to the products feature (select and filter) through the categories service, rather than duplicating the call
+- [x] Tests: list states, dialog validation and error display, delete rejection path
 
 ## feature/products
 

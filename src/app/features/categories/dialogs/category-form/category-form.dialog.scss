@@ -1,0 +1,10 @@
+.full-width {
+  width: 100%;
+  min-width: 300px;
+}
+
+.server-error {
+  color: var(--mat-sys-error);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
