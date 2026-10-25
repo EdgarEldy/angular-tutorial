@@ -223,11 +223,14 @@ Validation rules enforced by the backends (mirror them as UX validation in the f
 | Language             | TypeScript (the version bundled with Angular 21), `strict` mode                                 |
 | Scaffolding          | Angular CLI 21 is the default way to create files: `ng generate` for code, `ng add` for libraries (see [Generate with the Angular CLI](#generate-with-the-angular-cli)) |
 | HTTP                 | Angular `HttpClient` with functional interceptors (`provideHttpClient(withInterceptors([...]))`) |
-| State / reactivity   | Angular signals for local and view state; RxJS only where `HttpClient` requires it              |
+| State / reactivity   | Angular signals (`signal`, `computed`, `effect`, `linkedSignal`, `toSignal`, `toObservable`) for local and view state; RxJS only where `HttpClient` requires it |
 | UI                   | Angular Material (create/update forms open in `MatDialog` dialogs)                              |
-| Forms                | Typed Reactive Forms (Signal Forms are not used in this tutorial)                               |
-| Routing              | Lazy-loaded standalone routes, functional guards                                                |
+| Forms                | Typed Reactive Forms (`FormGroup<T>`, `FormControl<T>`), custom sync and async validators (Signal Forms are not used) |
+| Routing              | Lazy-loaded standalone routes, functional guards, route data, router events for global loading  |
 | Tests                | The unit-test runner that Angular 21 generates by default (Vitest, run with `ng test`), Angular `TestBed`, `provideHttpClientTesting` / `HttpTestingController` |
+| Template syntax      | Built-in control flow (`@if`, `@for`, `@switch`), `@defer` for deferred rendering, `@let` for local template variables |
+| Pipes                | Angular built-ins (`currency`, `date`, `titlecase`) plus one custom `MoneyPipe` in `shared/pipes` |
+| App init             | `provideAppInitializer()` (Angular 19+) for session restore at startup                         |
 | Lint / format        | `angular-eslint`, Prettier                                                                      |
 | Containerization     | Docker (multi-stage build, nginx), docker-compose                                               |
 | CI/CD                | GitHub Actions                                                                                  |
@@ -405,18 +408,19 @@ Tests must not require the real backends to be running. Test files and test name
 
 ### Tasks
 
-- Create the project with Angular CLI **21** in the current repository root (standalone, SCSS, routing, no SSR, existing git repository kept): `npx @angular/cli@21 new angular-tutorial --directory . --style=scss --ssr=false --skip-git`. `ng new` generates its own `README.md` and would replace this one: keep a copy of this file and restore it right after the generation. Confirm with `ng version` that the project is on Angular 21, and keep strict TypeScript and strict templates enabled.
-- Install the UI and tooling with `ng add @angular/material` and `ng add angular-eslint`; add Prettier. `npm run lint` must pass.
-- Environments: run `ng generate environments`, then add `identityApiUrl` (`/api`) and `apiUrl` (`/api/v1`).
-- `proxy.conf.json`: `/api/v1` to the business API first, then `/api` to the identity API; wire it in `angular.json` for `ng serve`.
-- Generic API models (`ApiResponse`, `PageResponse`, `ProblemDetail`) in `shared/models`, generated with `ng generate interface ... --type=model`.
-- `authInterceptor` and `errorInterceptor` (`ng generate interceptor`, functional), `error-mapper.ts` and `AppError`, registered in `app.config.ts` with `provideHttpClient(withInterceptors([...]))`, with unit tests for every status mapping
-- App shell: Material toolbar + sidenav + `router-outlet`, navigation entries for each domain (entries for not-yet-implemented features are added by their own branch), not-found page and a "not allowed" page, global loading/error primitives in `shared/ui`, shared `confirm-dialog`
-- `NotificationService` (snackbar) used by all features for success and error messages
-- Pagination helper shared by every list
-- `Dockerfile` (multi-stage: Node build, then nginx serving `dist` and proxying `/api/v1` to the business API and `/api` to the identity API), `nginx.conf`, and a `docker-compose.yml` that runs the frontend and expects both backends reachable (either as services built from the backend repositories or via `host.docker.internal`; document the chosen option)
-- `.github/workflows/ci.yml`: install, lint, test, build on every push and pull request
-- Replace this README's "How to follow" commands if the real commands differ
+- [x] Create the project with Angular CLI **21** in the current repository root (standalone, SCSS, routing, no SSR, existing git repository kept): `npx @angular/cli@21 new angular-tutorial --directory . --style=scss --ssr=false --skip-git`. `ng new` generates its own `README.md` and would replace this one: keep a copy of this file and restore it right after the generation. Confirm with `ng version` that the project is on Angular 21, and keep strict TypeScript and strict templates enabled.
+- [x] Install the UI and tooling with `ng add @angular/material` and `ng add angular-eslint`; add Prettier. `npm run lint` must pass.
+- [x] Environments: run `ng generate environments`, then add `identityApiUrl` (`/api`) and `apiUrl` (`/api/v1`).
+- [x] `proxy.conf.json`: `/api/v1` to the business API first, then `/api` to the identity API; wire it in `angular.json` for `ng serve`.
+- [x] Generic API models (`ApiResponse`, `PageResponse`, `ProblemDetail`) in `shared/models`, generated with `ng generate interface ... --type=model`.
+- [x] `authInterceptor` and `errorInterceptor` (`ng generate interceptor`, functional), `error-mapper.ts` and `AppError`, registered in `app.config.ts` with `provideHttpClient(withInterceptors([...]))`, with unit tests for every status mapping
+- [x] App shell: Material toolbar + sidenav + `router-outlet`, navigation entries for each domain (entries for not-yet-implemented features are added by their own branch), not-found page and a "not allowed" page, global loading/error primitives in `shared/ui`, shared `confirm-dialog`
+- [x] `NotificationService` (snackbar) used by all features for success and error messages
+- [x] Pagination helper shared by every list: maps Angular Material's `MatPaginator` (`pageIndex`, `pageSize`, `sort`) to the backend's `page`, `size`, `sort` parameters
+- [x] `MoneyPipe` in `shared/pipes` (`ng generate pipe shared/pipes/money`): formats a number as a locale-aware currency string; used in every screen that displays `unit_price` or `total`
+- [x] `Dockerfile` (multi-stage: Node build, then nginx serving `dist` and proxying `/api/v1` to the business API and `/api` to the identity API), `nginx.conf`, and a `docker-compose.yml` that runs the frontend and expects both backends reachable (either as services built from the backend repositories or via `host.docker.internal`; document the chosen option)
+- [x] `.github/workflows/ci.yml`: install, lint, test, build on every push and pull request
+- [x] Replace this README's "How to follow" commands if the real commands differ
 
 ## feature/auth
 
@@ -435,13 +439,13 @@ Depends on `feature/core-architecture`.
 
 ### Tasks
 
-- `AuthService` (session signals, token storage, `register`, `login`, `logout`, `activateAccount`, `forgotPassword`, `resetPassword`, `loadCurrentUser`, `hasRole`, `hasPermission`), `jwt.ts`, the three guards (`authGuard`, `roleGuard`, `permissionGuard`) and the `appHasPermission` / `appHasRole` directives, with tests
-- The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, required names)
-- A `401` on login (wrong credentials, locked or disabled account) shows the backend message on the form, without a redirect loop
-- On a `400` returned by `register` or `reset-password`, map `fieldErrors` onto the form fields and show an invalid-token message on the page
-- Return-URL handling after a forced redirect to `/login`
-- Toolbar: show the current user's name with a menu (profile, logout) when authenticated, login / register links otherwise; the "Administration" entry is shown to admins only
-- Tests: login and register error mapping, JWT decoding and session restore, guards, directives, token added only to the API base URLs, logout clears the session when the call fails
+- [x] `AuthService` (session signals, token storage, `register`, `login`, `logout`, `activateAccount`, `forgotPassword`, `resetPassword`, `loadCurrentUser`, `hasRole`, `hasPermission`), `jwt.ts`, the three guards (`authGuard`, `roleGuard`, `permissionGuard`) and the `appHasPermission` / `appHasRole` directives, with tests
+- [x] The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, required names)
+- [x] A `401` on login (wrong credentials, locked or disabled account) shows the backend message on the form, without a redirect loop
+- [x] On a `400` returned by `register` or `reset-password`, map `fieldErrors` onto the form fields and show an invalid-token message on the page
+- [x] Return-URL handling after a forced redirect to `/login`
+- [x] Toolbar: show the current user's name with a menu (profile, logout) when authenticated, login / register links otherwise; the "Administration" entry is shown to admins only
+- [x] Tests: login and register error mapping, JWT decoding and session restore, guards, directives, token added only to the API base URLs, logout clears the session when the call fails
 
 ## feature/rbac
 
@@ -461,13 +465,13 @@ There is no "create user" screen: accounts are created through registration (an 
 
 ### Tasks
 
-- The three features `users`, `roles` and `permissions` (service, models, routes, pages, dialogs); `roles` and `users` use the `roles` and `permissions` services for their assignment dialogs
-- The user list does not show roles (the list endpoint returns none); the "Manage roles" dialog loads `GET /users/{id}` and updates its chips from the `UserResponse` returned by every assign or remove call
-- The "Manage permissions" dialog updates its chips from the `RoleResponse` returned by every assign or remove call, and the roles table reflects the change on close
-- An administrator cannot lock or delete **their own** account from the UI: disable those actions on the current user's row (the backend also refuses locking one's own account with a `422`)
-- Deleting a role or permission that is still assigned returns a `422`: show the backend message and keep the row
-- Role names and permission `resource` / `action` are free text in the dialogs; show a hint about the convention (`ADMIN`, `PRODUCT` + `READ` giving `PRODUCT:READ`)
-- Tests: assignment dialogs update from the returned entity, own-account protection, `422` display, non-admin denied on every `/admin` route
+- [x] The three features `users`, `roles` and `permissions` (service, models, routes, pages, dialogs); `roles` and `users` use the `roles` and `permissions` services for their assignment dialogs
+- [x] The user list does not show roles (the list endpoint returns none); the "Manage roles" dialog loads `GET /users/{id}` and updates its chips from the `UserResponse` returned by every assign or remove call
+- [x] The "Manage permissions" dialog updates its chips from the `RoleResponse` returned by every assign or remove call, and the roles table reflects the change on close
+- [x] An administrator cannot lock or delete **their own** account from the UI: disable those actions on the current user's row (the backend also refuses locking one's own account with a `422`)
+- [x] Deleting a role or permission that is still assigned returns a `422`: show the backend message and keep the row
+- [x] Role names and permission `resource` / `action` are free text in the dialogs; show a hint about the convention (`ADMIN`, `PRODUCT` + `READ` giving `PRODUCT:READ`)
+- [x] Tests: assignment dialogs update from the returned entity, own-account protection, `422` display, non-admin denied on every `/admin` route
 
 ## feature/categories
 
@@ -483,11 +487,11 @@ Depends on `feature/core-architecture`.
 
 ### Tasks
 
-- `CategoriesService`, models (`CategoryRequest`, `CategoryResponse`), routes, list page, detail page, create/edit dialog
-- The list shows `category_name` and the dates; it does not rely on `products` (empty in the list)
-- Deleting a category that still has products returns `422`: show the backend message and keep the row
-- Expose the categories to the products feature (select and filter) through the categories service, rather than duplicating the call
-- Tests: list states, dialog validation and error display, delete rejection path
+- [x] `CategoriesService`, models (`CategoryRequest`, `CategoryResponse`), routes, list page, detail page, create/edit dialog
+- [x] The list shows `category_name` and the dates; it does not rely on `products` (empty in the list)
+- [x] Deleting a category that still has products returns `422`: show the backend message and keep the row
+- [x] Expose the categories to the products feature (select and filter) through the categories service, rather than duplicating the call
+- [x] Tests: list states, dialog validation and error display, delete rejection path
 
 ## feature/products
 
@@ -503,12 +507,12 @@ Depends on `feature/categories`.
 
 ### Tasks
 
-- `ProductsService`, models, routes, list page, create/edit dialog
-- Filters: category select, name search (debounced, `productName`), min and max price; any change resets to the first page and re-queries; empty filters are not sent
-- The table shows `category_name` straight from the product (no extra call per row)
-- `unit_price` input: numeric, greater than 0 (UX validation), displayed with the currency formatter
-- Handle `409` on update (product modified elsewhere) as described in error handling
-- Tests: filter parameters, empty filters omitted, form validation, `409` handling
+- [x] `ProductsService`, models, routes, list page, create/edit dialog
+- [x] Filters: category select, name search (debounced, `productName`), min and max price; any change resets to the first page and re-queries; empty filters are not sent
+- [x] The table shows `category_name` straight from the product (no extra call per row)
+- [x] `unit_price` input: numeric, greater than 0 (UX validation), displayed with the currency formatter
+- [x] Handle `409` on update (product modified elsewhere) as described in error handling
+- [x] Tests: filter parameters, empty filters omitted, form validation, `409` handling
 
 ## feature/customers
 
@@ -525,11 +529,11 @@ Depends on `feature/core-architecture`.
 
 ### Tasks
 
-- `CustomersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
-- Validation in the dialog matching the backend (required fields, valid email, telephone pattern)
-- A duplicate email or any other `422` shows the backend message in the dialog
-- Handle the backend rejecting a deletion (for example a customer with orders) by showing its message
-- Tests
+- [x] `CustomersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
+- [x] Validation in the dialog matching the backend (required fields, valid email, telephone pattern)
+- [x] A duplicate email or any other `422` shows the backend message in the dialog
+- [x] Handle the backend rejecting a deletion (for example a customer with orders) by showing its message
+- [x] Tests
 
 ## feature/orders
 
@@ -545,11 +549,11 @@ Depends on `feature/products` and `feature/customers`.
 
 ### Tasks
 
-- `OrdersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
-- The customer and product selects reuse the customers and products services (first page with a large `size`)
-- The order dialog shows a **preview** of the total (`quantity * unit_price`) clearly labelled as an estimate; after saving, display the server's `total`
-- The table shows `customer` and `product` names from the embedded objects, with no extra call per row
-- Tests: filter parameters, preview vs server total, dialog error display
+- [x] `OrdersService`, models, routes (behind `authGuard`), list page, detail page, create/edit dialog
+- [x] The customer and product selects reuse the customers and products services (first page with a large `size`)
+- [x] The order dialog shows a **preview** of the total (`quantity * unit_price`) clearly labelled as an estimate; after saving, display the server's `total`
+- [x] The table shows `customer` and `product` names from the embedded objects, with no extra call per row
+- [x] Tests: filter parameters, preview vs server total, dialog error display
 
 ## Order of work
 
@@ -589,7 +593,7 @@ Rules:
 
 ## Code conventions
 
-- Angular 21 idioms: standalone components only, zoneless-compatible code (state in signals, no reliance on Zone.js), `ChangeDetectionStrategy.OnPush` everywhere; use `inject()` rather than constructor injection; use the built-in control flow (`@if`, `@for`, `@switch`), signal-based `input()`/`output()`/`model()` and `computed()`/`effect()` for view state.
+- Angular 21 idioms: standalone components only, zoneless-compatible code (state in signals, no reliance on Zone.js), `ChangeDetectionStrategy.OnPush` everywhere; use `inject()` rather than constructor injection; use the built-in control flow (`@if`, `@for`, `@switch`), `@defer` for deferred template blocks (list tables, heavy dialogs), `@let` for local template variable bindings, signal-based `input()`/`output()`/`model()` and `computed()`/`effect()`/`linkedSignal()` for view state; `toSignal()` to bridge RxJS observables into the signal world and `toObservable()` for the reverse.
 - **Smart / dumb split**: page components fetch data and orchestrate; presentational components receive inputs and emit outputs.
 - Components never call `HttpClient`: they call the resource service. Services never contain UI logic (no snackbars, no navigation).
 - **Authorization checks go through the RBAC primitives** (`hasRole`, `hasPermission`, the guards and the directives); never compare role or permission strings ad hoc in templates or components.
@@ -598,7 +602,7 @@ Rules:
 - Reactive forms are typed (`FormGroup<...>`); validation messages are explicit and in one place per form.
 - **Components are four files**: `.ts`, `.html`, `.scss`, `.spec.ts`, with templates and styles in their own files (`templateUrl`, `styleUrl`), never inline. Pages and dialogs are components too.
 - **Create and update go through dialogs.** Every create/update form (category, product, customer, order, role, permission, user profile) and every assignment screen (user roles, role permissions) is a dialog component opened with Angular Material's `MatDialog` from the list page, never a separate routed form page. A dialog receives the entity to edit (or nothing, for a create) through `MAT_DIALOG_DATA`, pre-fills its typed form from it, and disables the submit button while the request is running. On success it closes with the saved entity and the list reloads; on a `400`, `409` or `422` it stays open and shows the backend message inline. Delete confirmations use the shared `confirm-dialog`. Routed pages are reserved for lists, details, the profile and the public authentication screens.
-- Subscriptions and long-lived observables are always cleaned up (`takeUntilDestroyed`, `async` pipe, or signal conversion).
+- Subscriptions and long-lived observables are always cleaned up: use `takeUntilDestroyed(inject(DestroyRef))` for imperative subscriptions, `toSignal()` to convert an observable to a signal (automatic cleanup), or the `async` pipe in templates. Never leave a live subscription after the component is destroyed.
 - Feature folders are lazy loaded; each exposes a `*.routes.ts`.
 - File names: kebab-case, named by the CLI: the default type for services, guards, interceptors and directives (`categories.service.ts`, `auth.guard.ts`, `auth.interceptor.ts`) and `--type` for pages, dialogs and models (`category-list.page.ts`, `category-form.dialog.ts`, `product-response.model.ts`).
 - Never log tokens or passwords, never display them, never put the token in a URL.
@@ -606,26 +610,96 @@ Rules:
 
 ## Concepts covered
 
-- Consuming two REST APIs from Angular with `HttpClient`, typed models, and a shared response envelope
-- Functional HTTP interceptors: token injection and centralized error mapping
-- Authentication with JWT: registration with email activation, login, logout with server-side blacklisting, password reset
-- Role-based access control with permissions: reading roles and permissions from the JWT claims, role and permission guards, structural directives, and an administration area for users, roles and permissions
-- Structured error handling (`ProblemDetail`, field errors mapped onto forms, `401`, `403`, `409` and `422` cases)
-- Server-side pagination, filtering and sorting with Angular Material
-- Modern Angular 21: standalone components, zoneless change detection, signals, functional guards/interceptors, lazy routes, typed reactive forms
-- Angular Material dialogs for create/update forms and assignments
-- Code generation with the Angular CLI (`ng generate`, `ng add`)
-- Dev proxy for two backends, Docker multi-stage build with nginx, GitHub Actions CI
+### HTTP and REST
+- Consuming two REST APIs with `HttpClient`, shared `ApiResponse<T>` / `PageResponse<T>` envelopes
+- Functional HTTP interceptors: `authInterceptor` (token injection) and `errorInterceptor` (centralised error mapping)
+- `HttpParams` for typed, immutable query-string construction; omitting empty filters
+- `provideHttpClient(withInterceptors([...]))` and `provideHttpClientTesting` / `HttpTestingController` in tests
+- Dev proxy (`proxy.conf.json`) to avoid CORS in development; two targets keyed by path prefix
+
+### Authentication and session
+- JWT without a library: base64url decode, claims (`sub`, `roles`, `permissions`, `exp`), expiry check
+- `localStorage` for token storage; session restore at startup with `provideAppInitializer()`
+- `AuthService` as a single source of truth: signals for `token`, `claims`, `isAuthenticated`, `isAdmin`, `currentUser`
+- Login, logout (server-side blacklist), registration with email activation, password reset flow
+
+### Signals and reactivity
+- `signal()` for mutable local state; `computed()` for derived read-only values
+- `effect()` for reacting to signal changes (e.g., reload list when filters change)
+- `linkedSignal()` (Angular 19+) for writable derived signals (e.g., reset page when filter changes)
+- `toSignal()` to convert an `Observable` to a `Signal` with automatic cleanup
+- `toObservable()` to drive RxJS pipelines from a signal value
+- `input()`, `output()`, `model()` signal-based component API; no `@Input()` / `@Output()`
+
+### Routing
+- Lazy-loaded feature routes with `loadChildren`; `*.routes.ts` as the public API of each feature
+- Functional guards: `authGuard`, `roleGuard` (route `data`), `permissionGuard`
+- Return-URL pattern: preserve the target URL across a forced `/login` redirect
+- Router events subscription for a global loading indicator in the shell
+
+### Template syntax (Angular 21)
+- Built-in control flow: `@if`, `@for` (with `track`), `@switch`
+- `@defer` blocks for deferred rendering (list tables load after initial paint)
+- `@let` for local template variable binding (avoid repeating computed expressions)
+- Structural directives: `*appHasRole`, `*appHasPermission` (write your own)
+
+### Forms
+- Typed `FormGroup<T>` and `FormControl<T>`: no implicit `any` in form values
+- `fb.nonNullable` group so `reset()` restores initial values, not `null`
+- Custom sync validators (`Validators.pattern` for phone, password-match cross-field validator)
+- Mapping backend `fieldErrors` (400) onto form controls with `setErrors({ server: '...' })`
+- Disabling submit during in-flight requests with a `saving` signal
+
+### RBAC UI primitives
+- Reading roles and permissions from JWT claims (not from `/auth/me`)
+- `*appHasRole` / `*appHasPermission` structural directives for conditional rendering
+- `roleGuard` and `permissionGuard` with route `data`; "not allowed" page for denied signed-in users
+
+### Error handling
+- `ProblemDetail` (RFC 7807) and `ApiResponse` envelope; tolerant parsing when body is absent
+- `AppError` taxonomy: `VALIDATION`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `BUSINESS_RULE`, `SERVER`, `NETWORK`
+- Handling `409` (optimistic-lock conflict on product update) and `422` (domain rule violation)
+- Three explicit page states: loading, error (with retry), empty/data
+
+### Pagination and filtering
+- Angular Material `MatPaginator` (0-based) wired directly to the backend `page` / `size` params
+- Shared pagination helper: translates `MatPaginator` + `MatSort` events to `HttpParams`
+- Filter signals: any change resets `page` to 0 and re-queries; empty values are never sent
+- Debouncing a text filter with `rxjs/operators debounceTime`
+
+### Components and architecture
+- Smart / dumb split: page components orchestrate data; presentational components receive `input()` and emit `output()`
+- `ChangeDetectionStrategy.OnPush` everywhere; signals drive change detection without Zone.js
+- `inject()` for dependency injection inside class bodies and functional factories
+- `DestroyRef` + `takeUntilDestroyed()` for imperative subscription cleanup
+- `MatDialog` for create / update forms and assignment screens; `ConfirmDialog` for deletes
+- Custom pipe (`MoneyPipe`) for locale-aware currency formatting
+
+### Testing
+- `TestBed` + `HttpTestingController` for service and interceptor tests
+- Testing every `AppError.kind` mapping from HTTP status codes
+- Material harnesses for component interaction tests
+- Guards tested with `TestBed` and mocked `AuthService` signals
+
+### Tooling and deployment
+- Angular CLI: `ng generate`, `ng add`; CLI naming conventions in Angular 21
+- `angular-eslint` + Prettier; ESLint override for snake_case API model properties
+- Docker multi-stage build (Node + nginx), `docker-compose.yml`
+- GitHub Actions CI: install, lint, test, build on every push and PR
 
 ## How to follow this tutorial
 
-1. Start the two backends (see their READMEs) and keep note of the port of each:
+1. Start the relevant backend (see its README). Both backends use port **8080** by default and are never started simultaneously — start the one that matches the branch you are working on:
    ```bash
-   git clone https://github.com/EdgarEldy/spring-security-tutorial.git   # identity and RBAC API
-   git clone https://github.com/EdgarEldy/spring-boot-tutorial.git       # business API
-   # in each project: docker-compose up (or run it with Maven) on a different port
+   # Identity and RBAC API (feature/auth, feature/rbac)
+   cd spring-security-tutorial
+   docker-compose up          # or: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+   # Business API (feature/categories, feature/products, feature/customers, feature/orders)
+   cd spring-boot-tutorial
+   docker-compose up          # or: mvn spring-boot:run -Dspring-boot.run.profiles=dev
    ```
-   Open each Swagger UI (`/swagger-ui.html`) to explore the endpoints and try them before coding them.
+   Open the Swagger UI at `http://localhost:8080/swagger-ui.html` to explore the endpoints.
 2. Clone this repository and check out `develop`:
    ```bash
    git clone https://github.com/EdgarEldy/angular-tutorial.git
@@ -633,9 +707,9 @@ Rules:
    git checkout develop
    npm install
    ```
-3. Put the two backend addresses in `proxy.conf.json`.
+3. `proxy.conf.json` already points both `/api/v1` and `/api` to `http://localhost:8080`. No changes needed.
 4. Follow the branches in order: `feature/core-architecture` -> `feature/auth` -> `feature/rbac` -> `feature/categories` -> `feature/products` -> `feature/customers` -> `feature/orders`.
-5. Run the app against the backends:
+5. Run the app against the active backend:
    ```bash
    npm start                   # ng serve with proxy.conf.json, http://localhost:4200
    ```

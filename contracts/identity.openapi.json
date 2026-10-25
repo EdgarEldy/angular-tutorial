@@ -1,0 +1,354 @@
+{
+  "openapi": "3.0.3",
+  "_stub": "STUB -- generated from README.md because the backend was not running at setup time. Run /contract-sync once spring-security-tutorial is up on port 8080 to replace this file.",
+  "info": {
+    "title": "spring-security-tutorial -- Identity and RBAC API",
+    "version": "0.0.1",
+    "description": "Registration, account activation, login, logout, password reset, users, roles and permissions."
+  },
+  "servers": [
+    { "url": "http://localhost:8080", "description": "Local dev" }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user (creates a disabled account)",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RegisterRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Registration successful", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseUserResponse" } } } },
+          "400": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseError" } } } },
+          "409": { "description": "Email already in use" }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/activate-account": {
+      "get": {
+        "summary": "Activate an account with the email token",
+        "parameters": [
+          { "name": "token", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Account activated" },
+          "400": { "description": "Invalid or expired token" }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login and receive JWT",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "JWT token", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseAuthResponse" } } } },
+          "401": { "description": "Wrong credentials, locked or disabled account" }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Blacklist current JWT",
+        "responses": { "200": { "description": "Logged out" }, "401": { "description": "Not authenticated" } }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get current user (roles list is empty here)",
+        "responses": {
+          "200": { "description": "Current user", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseUserResponse" } } } },
+          "401": { "description": "Not authenticated" }
+        }
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "summary": "Send password-reset email",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ForgotPasswordRequest" } } }
+        },
+        "responses": { "200": { "description": "Email sent (always)" } },
+        "security": []
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "summary": "Reset password with token",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResetPasswordRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Password reset" },
+          "400": { "description": "Invalid or expired token" }
+        },
+        "security": []
+      }
+    },
+    "/api/users": {
+      "get": {
+        "summary": "Paginated user list (ADMIN; roles is empty in list)",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "size", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": { "description": "Page of users", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponsePageUserResponse" } } } },
+          "401": { "description": "Not authenticated" }, "403": { "description": "Not ADMIN" }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "summary": "User detail with roles and permissions (ADMIN or owner)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": {
+          "200": { "description": "User detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseUserResponse" } } } },
+          "401": { "description": "Not authenticated" }, "403": { "description": "Not ADMIN or owner" }, "404": { "description": "Not found" }
+        }
+      },
+      "put": {
+        "summary": "Update first/last name (ADMIN or owner)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated user", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseUserResponse" } } } },
+          "400": { "description": "Validation" }, "401": { "description": "Not authenticated" }, "403": { "description": "Not ADMIN or owner" }, "404": { "description": "Not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete user (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": { "description": "Deleted" }, "401": {}, "403": {}, "404": {} }
+      }
+    },
+    "/api/users/{id}/lock": {
+      "patch": {
+        "summary": "Lock user account (ADMIN; cannot lock own account -> 422)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {}, "422": { "description": "Cannot lock own account" } }
+      }
+    },
+    "/api/users/{id}/unlock": {
+      "patch": {
+        "summary": "Unlock user account (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {} }
+      }
+    },
+    "/api/users/{userId}/roles/{roleId}": {
+      "post": {
+        "summary": "Assign role to user (ADMIN)",
+        "parameters": [
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "roleId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "UserResponse with roles", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseUserResponse" } } } }, "401": {}, "403": {}, "404": {} }
+      },
+      "delete": {
+        "summary": "Remove role from user (ADMIN)",
+        "parameters": [
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "roleId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "UserResponse with roles", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseUserResponse" } } } }, "401": {}, "403": {}, "404": {} }
+      }
+    },
+    "/api/roles": {
+      "get": {
+        "summary": "List all roles with permissions (ADMIN)",
+        "responses": { "200": { "description": "Plain array of RoleResponse", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleArray" } } } }, "401": {}, "403": {} }
+      },
+      "post": {
+        "summary": "Create role (ADMIN)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RoleRequest" } } } },
+        "responses": { "201": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleResponse" } } } }, "400": {}, "401": {}, "403": {} }
+      }
+    },
+    "/api/roles/{id}": {
+      "put": {
+        "summary": "Update role (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RoleRequest" } } } },
+        "responses": { "200": {}, "400": {}, "401": {}, "403": {}, "404": {} }
+      },
+      "delete": {
+        "summary": "Delete role -- 422 if still assigned to users (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {}, "422": { "description": "Role still assigned to users" } }
+      }
+    },
+    "/api/roles/{roleId}/permissions/{permissionId}": {
+      "post": {
+        "summary": "Assign permission to role (ADMIN)",
+        "parameters": [
+          { "name": "roleId", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "permissionId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Updated RoleResponse", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleResponse" } } } }, "401": {}, "403": {}, "404": {} }
+      },
+      "delete": {
+        "summary": "Remove permission from role (ADMIN)",
+        "parameters": [
+          { "name": "roleId", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "permissionId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Updated RoleResponse", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleResponse" } } } }, "401": {}, "403": {}, "404": {} }
+      }
+    },
+    "/api/permissions": {
+      "get": {
+        "summary": "List all permissions (ADMIN)",
+        "responses": { "200": { "description": "Plain array of PermissionResponse", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponsePermissionArray" } } } }, "401": {}, "403": {} }
+      },
+      "post": {
+        "summary": "Create permission (ADMIN)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionRequest" } } } },
+        "responses": { "201": {}, "400": {}, "401": {}, "403": {} }
+      }
+    },
+    "/api/permissions/{id}": {
+      "delete": {
+        "summary": "Delete permission -- 422 if still assigned to a role (ADMIN)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+        "responses": { "200": {}, "401": {}, "403": {}, "422": { "description": "Permission still assigned to a role" } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success":   { "type": "boolean" },
+          "message":   { "type": "string" },
+          "data":      { },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PageResponse": {
+        "type": "object",
+        "properties": {
+          "content":       { "type": "array", "items": {} },
+          "page":          { "type": "integer" },
+          "size":          { "type": "integer" },
+          "totalElements": { "type": "integer" },
+          "totalPages":    { "type": "integer" }
+        }
+      },
+      "ProblemDetail": {
+        "type": "object",
+        "properties": {
+          "type":        { "type": "string" },
+          "title":       { "type": "string" },
+          "status":      { "type": "integer" },
+          "detail":      { "type": "string" },
+          "instance":    { "type": "string" },
+          "fieldErrors": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["first_name", "last_name", "email", "password"],
+        "properties": {
+          "first_name": { "type": "string" },
+          "last_name":  { "type": "string" },
+          "email":      { "type": "string", "format": "email" },
+          "password":   { "type": "string", "minLength": 8 }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email":    { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": { "token": { "type": "string" } }
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "required": ["email"],
+        "properties": { "email": { "type": "string", "format": "email" } }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": ["token", "new_password"],
+        "properties": {
+          "token":        { "type": "string" },
+          "new_password": { "type": "string", "minLength": 8 }
+        }
+      },
+      "PermissionResponse": {
+        "type": "object",
+        "properties": {
+          "id":       { "type": "integer" },
+          "resource": { "type": "string" },
+          "action":   { "type": "string" }
+        }
+      },
+      "PermissionRequest": {
+        "type": "object",
+        "required": ["resource", "action"],
+        "properties": {
+          "resource": { "type": "string" },
+          "action":   { "type": "string" }
+        }
+      },
+      "RoleResponse": {
+        "type": "object",
+        "properties": {
+          "id":          { "type": "integer" },
+          "role_name":   { "type": "string" },
+          "permissions": { "type": "array", "items": { "$ref": "#/components/schemas/PermissionResponse" } }
+        }
+      },
+      "RoleRequest": {
+        "type": "object",
+        "required": ["role_name"],
+        "properties": { "role_name": { "type": "string" } }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "id":             { "type": "integer" },
+          "first_name":     { "type": "string" },
+          "last_name":      { "type": "string" },
+          "email":          { "type": "string" },
+          "enabled":        { "type": "boolean" },
+          "account_locked": { "type": "boolean" },
+          "roles":          { "type": "array", "items": { "$ref": "#/components/schemas/RoleResponse" } }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "required": ["first_name", "last_name"],
+        "properties": {
+          "first_name": { "type": "string" },
+          "last_name":  { "type": "string" }
+        }
+      },
+      "ApiResponseUserResponse":       { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "$ref": "#/components/schemas/UserResponse" } } },
+      "ApiResponseAuthResponse":       { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "$ref": "#/components/schemas/AuthResponse" } } },
+      "ApiResponseRoleResponse":       { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "$ref": "#/components/schemas/RoleResponse" } } },
+      "ApiResponseRoleArray":          { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/RoleResponse" } } } },
+      "ApiResponsePermissionArray":    { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/PermissionResponse" } } } },
+      "ApiResponsePageUserResponse":   { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageResponse" }], "properties": { "content": { "type": "array", "items": { "$ref": "#/components/schemas/UserResponse" } } } } } },
+      "ApiResponseError":              { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }], "properties": { "data": { "$ref": "#/components/schemas/ProblemDetail" } } }
+    },
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    }
+  },
+  "security": [{ "bearerAuth": [] }]
+}

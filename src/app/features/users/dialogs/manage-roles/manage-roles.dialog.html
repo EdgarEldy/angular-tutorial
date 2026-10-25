@@ -1,0 +1,73 @@
+<h2 mat-dialog-title>Manage roles -- {{ user().first_name }} {{ user().last_name }}</h2>
+
+<mat-dialog-content>
+  @if (loadingDetail()) {
+    <div class="center">
+      <mat-spinner diameter="32" />
+    </div>
+  } @else {
+    <!-- Assigned roles as removable chips with expandable permission list -->
+    <p class="section-label">Assigned roles</p>
+    @if (user().roles.length === 0) {
+      <p class="empty-hint">No roles assigned yet.</p>
+    } @else {
+      <mat-accordion>
+        @for (r of user().roles; track r.id) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ r.role_name }}</mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="permissions-list">
+              @if (r.permissions.length === 0) {
+                <span class="empty-hint">No permissions.</span>
+              } @else {
+                <mat-chip-set>
+                  @for (p of r.permissions; track p.id) {
+                    <mat-chip>{{ p.resource }}:{{ p.action }}</mat-chip>
+                  }
+                </mat-chip-set>
+              }
+            </div>
+            <mat-action-row>
+              <button
+                mat-button
+                color="warn"
+                [disabled]="saving()"
+                (click)="removeRole(r)">
+                Remove role
+              </button>
+            </mat-action-row>
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+    }
+
+    <!-- Add role -->
+    <p class="section-label" style="margin-top: 16px;">Add role</p>
+    <div class="add-row">
+      <mat-select
+        [(ngModel)]="selectedRoleId"
+        [disabled]="saving()"
+        placeholder="Select a role">
+        @for (r of availableRoles; track r.id) {
+          <mat-option [value]="r.id">{{ r.role_name }}</mat-option>
+        }
+      </mat-select>
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="selectedRoleId === null || saving()"
+        (click)="addRole()">
+        @if (saving()) {
+          <mat-spinner diameter="18" />
+        } @else {
+          Add
+        }
+      </button>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>
