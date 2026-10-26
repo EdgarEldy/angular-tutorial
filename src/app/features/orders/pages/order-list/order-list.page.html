@@ -1,19 +1,15 @@
-<div class="page-header">
-  <h1>Orders</h1>
+<app-page-header title="Orders">
   <!-- Only ADMIN users see the create button; the backend enforces the same rule -->
   <button *appHasRole="'ADMIN'" mat-raised-button color="primary" (click)="openCreateDialog()">
     <mat-icon>add</mat-icon>
     New order
   </button>
-</div>
+</app-page-header>
 
 <!-- Filter selects: customer and product -->
 <div class="filter-bar">
   <mat-form-field appearance="outline" class="filter-field">
     <mat-label>Filter by customer</mat-label>
-    <!-- Using (ngModelChange) with a plain <select> would require FormsModule.
-         We use the value of the $event directly from the change event instead,
-         which keeps the template free of additional imports. -->
     <mat-select
       [value]="filterCustomerId()"
       (selectionChange)="onCustomerFilter($event.value)">
@@ -38,87 +34,87 @@
 </div>
 
 @if (loading()) {
-  <div class="center">
-    <mat-spinner diameter="40" />
-  </div>
-} @else if (error(); as e) {
-  <div class="center">
-    <p class="error-text">{{ e.message }}</p>
-    <button mat-stroked-button (click)="loadOrders()">Retry</button>
-  </div>
+  <app-loading />
+} @else if (error()) {
+  <app-error-banner [error]="error()!" (retry)="loadOrders()" />
 } @else if (orders().length === 0) {
-  <p class="empty-state">No orders found.</p>
+  <app-empty-state
+    icon="receipt_long"
+    title="No orders found"
+    message="Try adjusting the filters or create a new order." />
 } @else {
-  <table mat-table [dataSource]="orders()" class="mat-elevation-z2">
+  <div class="table-container">
+    <table mat-table [dataSource]="orders()">
 
-    <!-- Order ID column -->
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef>Order #</th>
-      <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-        {{ o.id }}
-      </td>
-    </ng-container>
+      <!-- Order ID column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>Order #</th>
+        <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
+          {{ o.id }}
+        </td>
+      </ng-container>
 
-    <!-- Customer name from embedded customer object -- no extra request -->
-    <ng-container matColumnDef="customer_name">
-      <th mat-header-cell *matHeaderCellDef>Customer</th>
-      <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-        {{ o.customer.first_name }} {{ o.customer.last_name }}
-      </td>
-    </ng-container>
+      <!-- Customer name from embedded customer object -- no extra request -->
+      <ng-container matColumnDef="customer_name">
+        <th mat-header-cell *matHeaderCellDef>Customer</th>
+        <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
+          {{ o.customer.first_name }} {{ o.customer.last_name }}
+        </td>
+      </ng-container>
 
-    <!-- Product name from embedded product object -- no extra request -->
-    <ng-container matColumnDef="product_name">
-      <th mat-header-cell *matHeaderCellDef>Product</th>
-      <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-        {{ o.product.product_name }}
-      </td>
-    </ng-container>
+      <!-- Product name from embedded product object -- no extra request -->
+      <ng-container matColumnDef="product_name">
+        <th mat-header-cell *matHeaderCellDef>Product</th>
+        <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
+          {{ o.product.product_name }}
+        </td>
+      </ng-container>
 
-    <!-- Quantity column -->
-    <ng-container matColumnDef="quantity">
-      <th mat-header-cell *matHeaderCellDef>Qty</th>
-      <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-        {{ o.quantity }}
-      </td>
-    </ng-container>
+      <!-- Quantity column -->
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef>Qty</th>
+        <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
+          {{ o.quantity }}
+        </td>
+      </ng-container>
 
-    <!-- Total: computed by the server; formatted with MoneyPipe -->
-    <ng-container matColumnDef="total">
-      <th mat-header-cell *matHeaderCellDef>Total</th>
-      <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-        {{ o.total | money }}
-      </td>
-    </ng-container>
+      <!-- Total: computed by the server; formatted with MoneyPipe -->
+      <ng-container matColumnDef="total">
+        <th mat-header-cell *matHeaderCellDef>Total</th>
+        <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
+          {{ o.total | money }}
+        </td>
+      </ng-container>
 
-    <!-- Row actions: edit/delete visible to ADMIN only -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let o">
-        <ng-container *appHasRole="'ADMIN'">
-          <button mat-icon-button aria-label="Edit order" (click)="openEditDialog(o)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            color="warn"
-            aria-label="Delete order"
-            (click)="deleteOrder(o)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </ng-container>
-      </td>
-    </ng-container>
+      <!-- Row actions: edit/delete visible to ADMIN only -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let o">
+          <ng-container *appHasRole="'ADMIN'">
+            <button mat-icon-button aria-label="Edit order" (click)="openEditDialog(o)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              aria-label="Delete order"
+              (click)="deleteOrder(o)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </ng-container>
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
 
-  <!-- MatPaginator is 0-based; the backend page param is also 0-based -->
-  <mat-paginator
-    [length]="totalElements()"
-    [pageSize]="pageSize()"
-    [pageSizeOptions]="[5, 10, 25]"
-    (page)="onPage($event)"
-    aria-label="Select page of orders" />
+    <!-- MatPaginator is 0-based; the backend page param is also 0-based -->
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[5, 10, 25]"
+      (page)="onPage($event)"
+      aria-label="Select page of orders" />
+  </div>
 }
