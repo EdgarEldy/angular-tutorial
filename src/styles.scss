@@ -14,14 +14,14 @@
   --sidebar-w: 248px;
   --toolbar-h: 64px;
 
-  // Sidebar — permanently dark regardless of app theme
-  --sb-bg: #111827;
-  --sb-txt: #9ca3af;
-  --sb-txt-a: #fff;
-  --sb-active-bg: rgba(99, 102, 241, 0.18);
+  // Sidebar: light-mode defaults; dark-mode blocks below override to the dark palette
+  --sb-bg: #fff;
+  --sb-txt: #475569;
+  --sb-txt-a: #0f172a;
+  --sb-active-bg: rgba(99, 102, 241, 0.1);
   --sb-active-b: #6366f1;
-  --sb-hover: rgba(255, 255, 255, 0.05);
-  --sb-div: rgba(255, 255, 255, 0.08);
+  --sb-hover: rgba(0, 0, 0, 0.04);
+  --sb-div: #e2e8f0;
 
   // Accent — indigo #6366f1 used for active states, buttons, links
   --accent: #6366f1;
@@ -78,11 +78,17 @@
     --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
     --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
 
+    --sb-bg: #111827;
+    --sb-txt: #9ca3af;
+    --sb-txt-a: #fff;
+    --sb-active-bg: rgba(99, 102, 241, 0.18);
+    --sb-hover: rgba(255, 255, 255, 0.05);
+    --sb-div: rgba(255, 255, 255, 0.08);
+
     color-scheme: dark;
   }
 }
 
-// ── Dark mode — explicit in-app toggle ────────────────────────────────────────
 // The ShellComponent sets [data-theme="dark"] on <html> when the user clicks
 // the theme toggle, overriding the system preference in either direction.
 :root[data-theme='dark'] {
@@ -99,6 +105,13 @@
   --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.3);
   --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
   --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  --sb-bg: #111827;
+  --sb-txt: #9ca3af;
+  --sb-txt-a: #fff;
+  --sb-active-bg: rgba(99, 102, 241, 0.18);
+  --sb-hover: rgba(255, 255, 255, 0.05);
+  --sb-div: rgba(255, 255, 255, 0.08);
 
   color-scheme: dark;
 }
