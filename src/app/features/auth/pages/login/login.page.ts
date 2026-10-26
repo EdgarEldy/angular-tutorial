@@ -97,10 +97,13 @@ export class LoginPage implements OnInit {
 
     this.auth.login({ email, password }).subscribe({
       next: () => {
+        this.loading.set(false);
         // Load user profile then navigate; failure is handled inside loadCurrentUser
         this.auth.loadCurrentUser().subscribe();
+        // Fall back to /dashboard, not '/', so we land inside the authenticated
+        // shell rather than hitting AUTH_ROUTES which redirects / back to /login
         const returnUrl =
-          this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+          this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
         void this.router.navigateByUrl(returnUrl);
       },
       error: (err: AppError) => {
