@@ -1,6 +1,6 @@
 .error-banner {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 14px 16px;
   border-radius: var(--r);
@@ -15,25 +15,10 @@
     width: 20px;
     height: 20px;
     line-height: 20px;
-    margin-top: 1px;
-  }
-
-  &__body {
-    flex: 1;
-    min-width: 0;
-  }
-
-  &__kind {
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #dc2626;
-    margin-bottom: 2px;
   }
 
   &__message {
+    flex: 1;
     margin: 0;
     font-size: 13.5px;
     color: var(--txt-1);
