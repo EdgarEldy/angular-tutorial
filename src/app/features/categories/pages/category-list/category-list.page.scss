@@ -1,32 +1,84 @@
+:host {
+  display: block;
+}
+
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
 
   h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--txt-1);
     margin: 0;
+    letter-spacing: -0.01em;
   }
-}
-
-table {
-  width: 100%;
 }
 
 .center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 2rem 0;
+  gap: 16px;
+  padding: 64px 0;
 }
 
 .error-text {
-  color: var(--mat-sys-error);
+  font-size: 14px;
+  color: #dc2626;
+  text-align: center;
+  margin: 0;
 }
 
 .empty-state {
   text-align: center;
-  padding: 2rem 0;
-  color: var(--mat-sys-on-surface-variant);
+  padding: 64px 0;
+  font-size: 14px;
+  color: var(--txt-3);
+}
+
+table {
+  width: 100%;
+}
+
+// Override Material table colors with our design tokens
+:host ::ng-deep .mat-mdc-table {
+  background: var(--surface);
+  box-shadow: var(--sh-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+:host ::ng-deep .mat-mdc-header-row {
+  background: var(--bg);
+}
+
+:host ::ng-deep .mat-mdc-header-cell {
+  color: var(--txt-2);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom-color: var(--border);
+}
+
+:host ::ng-deep .mat-mdc-row {
+  border-bottom-color: var(--border);
+
+  &:hover {
+    background: var(--row-hover);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+:host ::ng-deep .mat-mdc-cell {
+  color: var(--txt-1);
+  font-size: 13.5px;
+  border-bottom: none;
 }

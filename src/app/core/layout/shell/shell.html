@@ -1,74 +1,123 @@
-<mat-sidenav-container class="shell">
-  <!-- Sidenav -->
-  <mat-sidenav
-    class="shell__sidenav"
-    [opened]="sidenavOpen()"
-    mode="side">
-    <mat-nav-list>
+<div class="app">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Sidebar: fixed 248 px, permanently dark (#111827)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <aside class="sidebar">
+
+    <div class="sb-brand">
+      <div class="brand-icon">
+        <mat-icon fontSet="material-icons-outlined">bolt</mat-icon>
+      </div>
+      <span class="brand-name">Angular Tutorial</span>
+    </div>
+
+    <nav class="sb-nav">
+      <span class="sec-label">Menu</span>
+
       @for (item of navItems; track item.route) {
         <a
-          mat-list-item
+          class="nav-item"
           [routerLink]="item.route"
-          routerLinkActive="active-link"
+          routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
+          <mat-icon fontSet="material-icons-outlined">{{ item.icon }}</mat-icon>
+          {{ item.label }}
         </a>
       }
 
-      <!-- Administration link: only visible to ADMIN role -->
-      <a
-        *appHasRole="'ADMIN'"
-        mat-list-item
-        routerLink="/admin/users"
-        routerLinkActive="active-link">
-        <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
-        <span matListItemTitle>Administration</span>
-      </a>
-    </mat-nav-list>
-  </mat-sidenav>
+      <!-- Administration section: visible to ADMIN role only -->
+      @if (auth.isAdmin()) {
+        <div class="sb-div"></div>
+        <span class="sec-label">Administration</span>
 
-  <!-- Main area -->
-  <mat-sidenav-content class="shell__content">
-    <!-- Toolbar -->
-    <mat-toolbar class="shell__toolbar" color="primary">
-      <button mat-icon-button aria-label="Toggle navigation" (click)="toggleSidenav()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="shell__app-name">Angular Tutorial</span>
-      <span class="shell__spacer"></span>
-
-      @if (auth.isAuthenticated()) {
-        <!-- Authenticated: show user menu -->
-        <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User menu">
-          <mat-icon>account_circle</mat-icon>
-        </button>
-        <mat-menu #userMenu="matMenu">
-          <div class="user-menu-header">
-            @if (auth.currentUser(); as user) {
-              <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
-              <span class="user-email">{{ user.email }}</span>
-            }
-          </div>
-          <a mat-menu-item routerLink="/profile">
-            <mat-icon>person</mat-icon>
-            Profile
+        @for (item of adminItems; track item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active">
+            <mat-icon fontSet="material-icons-outlined">{{ item.icon }}</mat-icon>
+            {{ item.label }}
           </a>
-          <button mat-menu-item (click)="logout()">
-            <mat-icon>logout</mat-icon>
+        }
+      }
+    </nav>
+
+    <div class="sb-footer">
+      <button class="nav-logout" (click)="logout()">
+        <mat-icon fontSet="material-icons-outlined">logout</mat-icon>
+        Sign out
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Main area: sticky toolbar + scrollable content
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="app-main">
+
+    <header class="toolbar">
+      <span class="tb-title">{{ pageTitle() }}</span>
+
+      <div class="tb-actions">
+
+        <button
+          class="theme-btn"
+          (click)="toggleTheme()"
+          [title]="darkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
+          <mat-icon fontSet="material-icons-outlined">
+            {{ darkMode() ? 'light_mode' : 'dark_mode' }}
+          </mat-icon>
+        </button>
+
+        <div class="notif-wrap">
+          <button class="icon-btn" aria-label="Notifications">
+            <mat-icon fontSet="material-icons-outlined">notifications_none</mat-icon>
+          </button>
+          <div class="notif-dot"></div>
+        </div>
+
+        <button
+          class="profile-btn"
+          (click)="toggleProfile($event)"
+          aria-label="Open profile menu"
+          aria-haspopup="true"
+          [attr.aria-expanded]="profileOpen()">
+          <div class="avatar">{{ initials() }}</div>
+          <div class="profile-info">
+            <div class="profile-name">{{ displayName() }}</div>
+            <div class="profile-role">{{ userRole() }}</div>
+          </div>
+          <mat-icon class="chevron" fontSet="material-icons-outlined">expand_more</mat-icon>
+        </button>
+
+      </div>
+
+      @if (profileOpen()) {
+        <div class="dropdown" (click)="$event.stopPropagation()">
+          <div class="dd-hdr">
+            <div class="dd-name">{{ displayName() }}</div>
+            <div class="dd-email">{{ auth.currentUser()?.email }}</div>
+          </div>
+          <button class="dd-item" [routerLink]="'/profile'" (click)="profileOpen.set(false)">
+            <mat-icon fontSet="material-icons-outlined">person_outline</mat-icon>
+            Profile
+          </button>
+          <div class="dd-div"></div>
+          <button class="dd-item danger" (click)="logout()">
+            <mat-icon fontSet="material-icons-outlined">logout</mat-icon>
             Sign out
           </button>
-        </mat-menu>
-      } @else {
-        <!-- Unauthenticated: show login / register links -->
-        <a mat-button routerLink="/login">Sign in</a>
-        <a mat-button routerLink="/register">Register</a>
+        </div>
       }
-    </mat-toolbar>
 
-    <!-- Page content -->
-    <main class="shell__main">
+    </header>
+
+    <main class="content">
       <router-outlet />
     </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+
+  </div>
+
+</div>
