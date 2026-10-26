@@ -85,6 +85,11 @@
     --sb-hover: rgba(255, 255, 255, 0.05);
     --sb-div: rgba(255, 255, 255, 0.08);
 
+    // mat.theme() injects --mat-paginator-* tokens with hardcoded light values.
+    // Re-pointing them to our surface/text tokens keeps the paginator dark.
+    --mat-paginator-container-background-color: var(--surface);
+    --mat-paginator-container-text-color: var(--txt-1);
+
     color-scheme: dark;
   }
 }
@@ -112,6 +117,9 @@
   --sb-active-bg: rgba(99, 102, 241, 0.18);
   --sb-hover: rgba(255, 255, 255, 0.05);
   --sb-div: rgba(255, 255, 255, 0.08);
+
+  --mat-paginator-container-background-color: var(--surface);
+  --mat-paginator-container-text-color: var(--txt-1);
 
   color-scheme: dark;
 }
