@@ -97,6 +97,7 @@ export class LoginPage implements OnInit {
 
     this.auth.login({ email, password }).subscribe({
       next: () => {
+        this.loading.set(false);
         // Load user profile then navigate; failure is handled inside loadCurrentUser
         this.auth.loadCurrentUser().subscribe();
         const returnUrl =
