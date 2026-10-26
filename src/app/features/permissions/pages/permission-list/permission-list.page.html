@@ -1,22 +1,21 @@
-<div class="page-header">
-  <h1>Permissions</h1>
+<app-page-header title="Permissions">
   <button mat-raised-button color="primary" (click)="openCreateDialog()">
     <mat-icon>add</mat-icon>
     New permission
   </button>
-</div>
+</app-page-header>
 
 @if (loading()) {
-  <div class="center">
-    <mat-spinner diameter="40" />
-  </div>
-} @else if (error(); as e) {
-  <div class="center">
-    <p class="error-text">{{ e.message }}</p>
-    <button mat-stroked-button (click)="loadPermissions()">Retry</button>
-  </div>
+  <app-loading />
+} @else if (error()) {
+  <app-error-banner [error]="error()!" (retry)="loadPermissions()" />
 } @else if (permissions().length === 0) {
-  <p class="empty-state">No permissions defined yet.</p>
+  <app-empty-state
+    icon="lock_open"
+    title="No permissions defined yet"
+    message="Create your first permission to assign it to roles.">
+    <button mat-flat-button color="primary" (click)="openCreateDialog()">New permission</button>
+  </app-empty-state>
 } @else {
   <table mat-table [dataSource]="permissions()" class="mat-elevation-z2">
     <!-- Resource column -->

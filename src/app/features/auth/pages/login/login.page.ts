@@ -11,10 +11,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Auth } from '../../../../core/auth/auth';
@@ -37,15 +33,7 @@ import { AppError } from '../../../../core/http/app-error.model';
   selector: 'app-login-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-  ],
+  imports: [ReactiveFormsModule, RouterLink, MatProgressSpinnerModule],
   templateUrl: './login.page.html',
   styleUrl: './login.page.scss',
 })
@@ -57,6 +45,9 @@ export class LoginPage implements OnInit {
 
   /** True while the login HTTP call is in-flight. */
   protected readonly loading = signal(false);
+
+  /** Toggles the password input between type="password" and type="text". */
+  protected readonly showPassword = signal(false);
 
   /**
    * Generic error message shown below the form (network/server errors).
