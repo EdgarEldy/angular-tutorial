@@ -1,28 +1,27 @@
 .error-banner {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-radius: 4px;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  margin-bottom: 20px;
 
   &__icon {
     flex-shrink: 0;
-  }
-
-  &__body {
-    flex: 1;
-  }
-
-  &__kind {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    color: #dc2626;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
   }
 
   &__message {
-    margin: 0.25rem 0 0;
-    font-size: 0.875rem;
+    flex: 1;
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--txt-1);
+    line-height: 1.4;
   }
 }

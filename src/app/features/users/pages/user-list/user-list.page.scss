@@ -2,43 +2,6 @@
   display: block;
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-
-  h1 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--txt-1);
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-}
-
-.center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 64px 0;
-}
-
-.error-text {
-  font-size: 14px;
-  color: #dc2626;
-  text-align: center;
-  margin: 0;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 64px 0;
-  font-size: 14px;
-  color: var(--txt-3);
-}
-
 table {
   width: 100%;
 }

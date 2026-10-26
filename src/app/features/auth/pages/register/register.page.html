@@ -109,14 +109,25 @@
               <label class="form-lbl" for="reg-password">
                 Password <span aria-hidden="true">*</span>
               </label>
-              <input
-                id="reg-password"
-                class="form-inp"
-                [class.err]="form.controls.password.invalid && form.controls.password.touched"
-                type="password"
-                formControlName="password"
-                autocomplete="new-password"
-                placeholder="••••••••" />
+              <div class="form-inp-wrap">
+                <input
+                  id="reg-password"
+                  class="form-inp form-inp-icon"
+                  [class.err]="form.controls.password.invalid && form.controls.password.touched"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  formControlName="password"
+                  autocomplete="new-password"
+                  placeholder="••••••••" />
+                <button
+                  type="button"
+                  class="form-inp-suffix"
+                  (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+                  <span class="material-icons-outlined">
+                    {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
               @if (form.controls.password.touched && form.controls.password.hasError('required')) {
                 <span class="form-err">Password is required</span>
               } @else if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
@@ -128,14 +139,25 @@
               <label class="form-lbl" for="reg-confirm">
                 Confirm password <span aria-hidden="true">*</span>
               </label>
-              <input
-                id="reg-confirm"
-                class="form-inp"
-                [class.err]="form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched"
-                type="password"
-                formControlName="confirmPassword"
-                autocomplete="new-password"
-                placeholder="••••••••" />
+              <div class="form-inp-wrap">
+                <input
+                  id="reg-confirm"
+                  class="form-inp form-inp-icon"
+                  [class.err]="form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched"
+                  [type]="showConfirmPassword() ? 'text' : 'password'"
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                  placeholder="••••••••" />
+                <button
+                  type="button"
+                  class="form-inp-suffix"
+                  (click)="showConfirmPassword.set(!showConfirmPassword())"
+                  [attr.aria-label]="showConfirmPassword() ? 'Hide password' : 'Show password'">
+                  <span class="material-icons-outlined">
+                    {{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
               @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.hasError('passwordMismatch')) {
                 <span class="form-err">Passwords do not match</span>
               }

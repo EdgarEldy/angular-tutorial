@@ -1,9 +1,6 @@
 <div class="error-banner" role="alert">
   <mat-icon class="error-banner__icon">error_outline</mat-icon>
-  <div class="error-banner__body">
-    <strong class="error-banner__kind">{{ error().kind }}</strong>
-    <p class="error-banner__message">{{ error().message }}</p>
-  </div>
+  <p class="error-banner__message">{{ error().message }}</p>
   <button mat-icon-button aria-label="Retry" (click)="onRetry()">
     <mat-icon>refresh</mat-icon>
   </button>
