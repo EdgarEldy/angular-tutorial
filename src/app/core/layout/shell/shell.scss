@@ -1,32 +1,407 @@
-.shell {
+// ── Top-level layout ──────────────────────────────────────────────────────────
+// Two-column flex: fixed sidebar on the left, fluid main area on the right.
+// overflow:hidden on both axes prevents double scrollbars — the .content
+// region below is the only element that scrolls.
+.app {
+  display: flex;
+  width: 100%;
   height: 100vh;
+  overflow: hidden;
+}
 
-  &__sidenav {
-    width: 220px;
-  }
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
 
-  &__toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--sb-bg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
 
-  &__app-name {
-    margin-left: 0.5rem;
-    font-weight: 500;
-  }
+.sb-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--sb-div);
+  flex-shrink: 0;
+}
 
-  &__spacer {
-    flex: 1;
-  }
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
 
-  &__main {
-    padding: 1.5rem;
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
   }
 }
 
-// Highlight active nav link
-::ng-deep .active-link {
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
+.brand-name {
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.sb-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+}
+
+.sec-label {
+  display: block;
+  padding: 12px 10px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  // Slightly lighter than sb-txt so section headings recede behind nav items
+  color: #4b5563;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--r);
+  cursor: pointer;
+  color: var(--sb-txt);
+  font-size: 14px;
+  font-weight: 500;
+  // Three-pixel left border indicates the active route; transparent otherwise
+  border-left: 3px solid transparent;
+  margin-bottom: 2px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+
+  mat-icon {
+    font-size: 19px;
+    width: 19px;
+    height: 19px;
+    line-height: 19px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--sb-hover);
+    color: #d1d5db;
+  }
+
+  // routerLinkActive adds this class when the route is active
+  &.active {
+    background: var(--sb-active-bg);
+    color: var(--sb-txt-a);
+    border-left-color: var(--sb-active-b);
+  }
+}
+
+.sb-div {
+  height: 1px;
+  background: var(--sb-div);
+  margin: 10px 0;
+}
+
+.sb-footer {
+  padding: 10px 10px 14px;
+  border-top: 1px solid var(--sb-div);
+  flex-shrink: 0;
+}
+
+.nav-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--r);
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  border: none;
+  border-left: 3px solid transparent;
+  background: none;
+  width: 100%;
+  transition: background 0.15s, color 0.15s;
+
+  mat-icon {
+    font-size: 19px;
+    width: 19px;
+    height: 19px;
+    line-height: 19px;
+  }
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+  }
+}
+
+// ── Toolbar ───────────────────────────────────────────────────────────────────
+// position:relative is required so the absolutely-positioned dropdown
+// (.dropdown) resolves against the toolbar, not the viewport.
+.toolbar {
+  height: var(--toolbar-h);
+  flex-shrink: 0;
+  background: var(--toolbar-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 10;
+}
+
+.tb-title {
+  font-size: 16px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--txt-1);
+}
+
+.tb-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt-2);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: background 0.15s;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+  }
+
+  &:hover {
+    background: var(--row-hover);
+  }
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt-2);
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
+
+  &:hover {
+    background: var(--row-hover);
+  }
+}
+
+.notif-wrap {
+  position: relative;
+}
+
+// Red dot indicator for unread notifications
+.notif-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  // Border matches toolbar background to create the "cut-out" halo effect
+  border: 2px solid var(--toolbar-bg);
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--r);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--row-hover);
+  }
+
+  .chevron {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    color: var(--txt-2);
+    margin-left: 2px;
+  }
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  text-align: left;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt-1);
+  white-space: nowrap;
+}
+
+.profile-role {
+  font-size: 11px;
+  color: var(--txt-2);
+  white-space: nowrap;
+}
+
+// ── Profile dropdown ──────────────────────────────────────────────────────────
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 24px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-drop);
+  border: 1px solid var(--border);
+  min-width: 220px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.dd-hdr {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dd-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--txt-1);
+}
+
+.dd-email {
+  font-size: 12px;
+  color: var(--txt-2);
+  margin-top: 2px;
+}
+
+.dd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: var(--font);
+  color: var(--txt-1);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    color: var(--txt-2);
+  }
+
+  &:hover {
+    background: var(--row-hover);
+  }
+
+  &.danger {
+    color: #ef4444;
+
+    mat-icon {
+      color: #ef4444;
+    }
+  }
+}
+
+.dd-div {
+  height: 1px;
+  background: var(--border);
+}
+
+// ── Page content ──────────────────────────────────────────────────────────────
+// This is the only scrollable region in the app shell.
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  background: var(--bg);
 }
