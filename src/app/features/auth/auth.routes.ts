@@ -14,14 +14,6 @@ import { authGuard } from '../../core/auth/auth-guard';
  *   loadChildren: () => import('./auth.routes').then(m => m.AUTH_ROUTES)
  */
 export const AUTH_ROUTES: Routes = [
-  // Redirect the root path to login so that navigating to / always lands
-  // on the login page. Without this entry Angular would find no matching
-  // child for the empty segment and leave the router outlet blank.
-  {
-    path: '',
-    pathMatch: 'full',
-    redirectTo: 'login',
-  },
   {
     path: 'login',
     loadComponent: () =>
