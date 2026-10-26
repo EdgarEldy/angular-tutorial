@@ -1,12 +1,115 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+// Inter from Google Fonts — drives all custom UI typography
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+// Material Icons (filled + outlined) — shell uses outlined variant
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined');
+
+// ── Design tokens ─────────────────────────────────────────────────────────────
+// Every custom component reads these CSS custom properties instead of
+// hard-coded values, so dark mode is a single attribute swap on :root.
+:root {
+  // Layout dimensions
+  --sidebar-w: 248px;
+  --toolbar-h: 64px;
+
+  // Sidebar — permanently dark regardless of app theme
+  --sb-bg: #111827;
+  --sb-txt: #9ca3af;
+  --sb-txt-a: #fff;
+  --sb-active-bg: rgba(99, 102, 241, 0.18);
+  --sb-active-b: #6366f1;
+  --sb-hover: rgba(255, 255, 255, 0.05);
+  --sb-div: rgba(255, 255, 255, 0.08);
+
+  // Accent — indigo #6366f1 used for active states, buttons, links
+  --accent: #6366f1;
+  --accent-h: #4f46e5;
+  --accent-fg: #fff;
+
+  // App surfaces (light theme defaults)
+  --bg: #f1f5f9;
+  --surface: #fff;
+  --toolbar-bg: #fff;
+
+  // Text hierarchy
+  --txt-1: #0f172a;
+  --txt-2: #64748b;
+  --txt-3: #94a3b8;
+
+  // Borders & hover states
+  --border: #e2e8f0;
+  --row-hover: #f8fafc;
+
+  // Status tags (e.g., category badge on a product row)
+  --tag-bg: #eef2ff;
+  --tag-txt: #4338ca;
+
+  // Elevation shadows — three levels used across cards, dropdowns and dialogs
+  --sh-card: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  // Border radii
+  --r: 8px;
+  --r-lg: 12px;
+
+  // Font stack
+  --font: 'Inter', system-ui, sans-serif;
+}
+
+// ── Dark mode — system preference ─────────────────────────────────────────────
+// Applied when the OS is in dark mode and the user has not explicitly chosen
+// light mode via the in-app toggle (data-theme="light" opt-out).
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --toolbar-bg: #161b22;
+    --txt-1: #f0f6fc;
+    --txt-2: #8b949e;
+    --txt-3: #6e7681;
+    --border: #30363d;
+    --row-hover: #1c2128;
+    --tag-bg: rgba(99, 102, 241, 0.18);
+    --tag-txt: #a5b4fc;
+    --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.3);
+    --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    color-scheme: dark;
+  }
+}
+
+// ── Dark mode — explicit in-app toggle ────────────────────────────────────────
+// The ShellComponent sets [data-theme="dark"] on <html> when the user clicks
+// the theme toggle, overriding the system preference in either direction.
+:root[data-theme='dark'] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --toolbar-bg: #161b22;
+  --txt-1: #f0f6fc;
+  --txt-2: #8b949e;
+  --txt-3: #6e7681;
+  --border: #30363d;
+  --row-hover: #1c2128;
+  --tag-bg: rgba(99, 102, 241, 0.18);
+  --tag-txt: #a5b4fc;
+  --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  color-scheme: dark;
+}
+
+// ── Angular Material M3 theme ─────────────────────────────────────────────────
 html {
   height: 100%;
+
+  // Keep the Material palette (azure/blue) so that Material-specific
+  // components (dialogs, snackbars, progress indicators) render coherently.
+  // Our custom components use --accent instead of Material's primary color.
   @include mat.theme(
     (
       color: (
@@ -19,21 +122,20 @@ html {
   );
 }
 
+// ── Global resets ─────────────────────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
   height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--txt-1);
+
+  // Start in light mode; the shell toggles this via [data-theme="dark"]
+  color-scheme: light;
 }
-/* You can add global styles to this file, and also import other style files */
