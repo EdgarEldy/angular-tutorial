@@ -2,83 +2,42 @@
   display: block;
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-
-  h1 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--txt-1);
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-}
-
-.center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 64px 0;
-}
-
-.error-text {
-  font-size: 14px;
-  color: #dc2626;
-  text-align: center;
-  margin: 0;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 64px 0;
-  font-size: 14px;
-  color: var(--txt-3);
-}
-
-table {
-  width: 100%;
-}
-
-// Override Material table colors with our design tokens
-:host ::ng-deep .mat-mdc-table {
+.table-container {
   background: var(--surface);
+  border-radius: var(--r-lg);
   box-shadow: var(--sh-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
   overflow: hidden;
-}
 
-:host ::ng-deep .mat-mdc-header-row {
-  background: var(--bg);
-}
+  ::ng-deep {
+    .mat-mdc-table {
+      background: var(--surface);
+      width: 100%;
+    }
 
-:host ::ng-deep .mat-mdc-header-cell {
-  color: var(--txt-2);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border-bottom-color: var(--border);
-}
+    .mat-mdc-header-cell {
+      background: var(--bg);
+      color: var(--txt-2);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-bottom-color: var(--border);
+    }
 
-:host ::ng-deep .mat-mdc-row {
-  border-bottom-color: var(--border);
+    .mat-mdc-cell {
+      color: var(--txt-1);
+      border-bottom-color: var(--border);
+      font-size: 0.875rem;
+    }
 
-  &:hover {
-    background: var(--row-hover);
+    .mat-mdc-row:hover .mat-mdc-cell {
+      background: var(--row-hover);
+    }
+
+    .mat-mdc-paginator {
+      background: var(--surface);
+      color: var(--txt-2);
+      border-top: 1px solid var(--border);
+    }
   }
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-:host ::ng-deep .mat-mdc-cell {
-  color: var(--txt-1);
-  font-size: 13.5px;
-  border-bottom: none;
 }

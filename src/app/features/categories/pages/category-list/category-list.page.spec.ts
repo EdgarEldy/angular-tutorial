@@ -70,7 +70,7 @@ describe('CategoryListPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const errorEl = fixture.nativeElement.querySelector('.error-text');
+    const errorEl = fixture.nativeElement.querySelector('app-error-banner');
     expect(errorEl).toBeTruthy();
     expect(errorEl.textContent).toContain('Server error');
   });

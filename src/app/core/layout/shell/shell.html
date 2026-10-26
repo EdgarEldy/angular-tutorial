@@ -1,16 +1,15 @@
 <div class="app">
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       Sidebar: fixed 248 px, permanently dark (#111827)
-       ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Sidebar: fixed 248 px, theme-aware background -->
   <aside class="sidebar">
 
-    <div class="sb-brand">
+    <!-- Brand: clicking the logo navigates to the home route -->
+    <a class="sb-brand" routerLink="/">
       <div class="brand-icon">
         <mat-icon fontSet="material-icons-outlined">bolt</mat-icon>
       </div>
       <span class="brand-name">Angular Tutorial</span>
-    </div>
+    </a>
 
     <nav class="sb-nav">
       <span class="sec-label">Menu</span>
@@ -52,9 +51,7 @@
 
   </aside>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       Main area: sticky toolbar + scrollable content
-       ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Main area: sticky toolbar + scrollable content -->
   <div class="app-main">
 
     <header class="toolbar">
@@ -78,6 +75,7 @@
           <div class="notif-dot"></div>
         </div>
 
+        <!-- Profile button: stopPropagation prevents document:click from closing the dropdown immediately -->
         <button
           class="profile-btn"
           (click)="toggleProfile($event)"

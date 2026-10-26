@@ -1,73 +1,72 @@
-<div class="page-header">
-  <h1>Categories</h1>
+<app-page-header title="Categories">
   <!-- Only ADMIN users see the create button; the backend enforces the same rule -->
   <button *appHasRole="'ADMIN'" mat-raised-button color="primary" (click)="openCreateDialog()">
     <mat-icon>add</mat-icon>
     New category
   </button>
-</div>
+</app-page-header>
 
 @if (loading()) {
-  <div class="center">
-    <mat-spinner diameter="40" />
-  </div>
-} @else if (error(); as e) {
-  <div class="center">
-    <p class="error-text">{{ e.message }}</p>
-    <button mat-stroked-button (click)="loadCategories()">Retry</button>
-  </div>
+  <app-loading />
+} @else if (error()) {
+  <app-error-banner [error]="error()!" (retry)="loadCategories()" />
 } @else if (categories().length === 0) {
-  <p class="empty-state">No categories found.</p>
+  <app-empty-state
+    icon="category"
+    title="No categories found"
+    message="Create your first category to get started." />
 } @else {
-  <table mat-table [dataSource]="categories()" class="mat-elevation-z2">
+  <div class="table-container">
+    <table mat-table [dataSource]="categories()">
 
-    <!-- Category name column -->
-    <ng-container matColumnDef="category_name">
-      <th mat-header-cell *matHeaderCellDef>Name</th>
-      <td mat-cell *matCellDef="let c">
-        <!-- RouterLink navigates to the detail page with the category's products -->
-        <a [routerLink]="['/categories', c.id]">{{ c.category_name }}</a>
-      </td>
-    </ng-container>
+      <!-- Category name column -->
+      <ng-container matColumnDef="category_name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let c">
+          <!-- RouterLink navigates to the detail page with the category's products -->
+          <a [routerLink]="['/categories', c.id]">{{ c.category_name }}</a>
+        </td>
+      </ng-container>
 
-    <!-- Created date column -->
-    <ng-container matColumnDef="created_at">
-      <th mat-header-cell *matHeaderCellDef>Created</th>
-      <!-- date pipe formats the ISO string to a human-readable locale date -->
-      <td mat-cell *matCellDef="let c">{{ c.created_at | date:'mediumDate' }}</td>
-    </ng-container>
+      <!-- Created date column -->
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Created</th>
+        <!-- date pipe formats the ISO string to a human-readable locale date -->
+        <td mat-cell *matCellDef="let c">{{ c.created_at | date:'mediumDate' }}</td>
+      </ng-container>
 
-    <!-- Updated date column -->
-    <ng-container matColumnDef="updated_at">
-      <th mat-header-cell *matHeaderCellDef>Updated</th>
-      <td mat-cell *matCellDef="let c">{{ c.updated_at | date:'mediumDate' }}</td>
-    </ng-container>
+      <!-- Updated date column -->
+      <ng-container matColumnDef="updated_at">
+        <th mat-header-cell *matHeaderCellDef>Updated</th>
+        <td mat-cell *matCellDef="let c">{{ c.updated_at | date:'mediumDate' }}</td>
+      </ng-container>
 
-    <!-- Row actions column -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let c">
-        <!-- Edit and delete are visible to ADMIN only -->
-        <ng-container *appHasRole="'ADMIN'">
-          <button mat-icon-button aria-label="Edit category" (click)="openEditDialog(c)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" aria-label="Delete category" (click)="deleteCategory(c)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </ng-container>
-      </td>
-    </ng-container>
+      <!-- Row actions column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let c">
+          <!-- Edit and delete are visible to ADMIN only -->
+          <ng-container *appHasRole="'ADMIN'">
+            <button mat-icon-button aria-label="Edit category" (click)="openEditDialog(c)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" aria-label="Delete category" (click)="deleteCategory(c)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </ng-container>
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
 
-  <!-- MatPaginator is 0-based; the backend page param is also 0-based -->
-  <mat-paginator
-    [length]="totalElements()"
-    [pageSize]="pageSize()"
-    [pageSizeOptions]="[5, 10, 25]"
-    (page)="onPage($event)"
-    aria-label="Select page of categories" />
+    <!-- MatPaginator is 0-based; the backend page param is also 0-based -->
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[5, 10, 25]"
+      (page)="onPage($event)"
+      aria-label="Select page of categories" />
+  </div>
 }
