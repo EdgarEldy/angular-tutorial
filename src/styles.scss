@@ -160,3 +160,156 @@ body {
   // Start in light mode; the shell toggles this via [data-theme="dark"]
   color-scheme: light;
 }
+
+// ── Auth layout ───────────────────────────────────────────────────────────────
+// Full-screen two-column layout shared by all auth pages (login, register,
+// activate-account, forgot-password, reset-password). Auth pages render outside
+// the shell, directly into <app-root>, so they fill the entire viewport.
+
+.auth-screen {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+// Dark left panel: branding + tagline, hidden on small screens
+.auth-panel {
+  width: 420px;
+  flex-shrink: 0;
+  // Permanently dark, matching the sidebar; does not respond to --surface token
+  background: #111827;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+
+  @media (max-width: 700px) {
+    display: none;
+  }
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+
+  .material-icons-outlined {
+    font-size: 22px;
+  }
+}
+
+.auth-brand-name {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.auth-tagline {
+  color: #9ca3af;
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 280px;
+
+  strong {
+    color: #fff;
+  }
+}
+
+.auth-quote {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+// Right scrollable area containing the card
+.auth-form-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.auth-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 420px;
+  padding: 36px;
+}
+
+.auth-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  color: var(--txt-1);
+}
+
+.auth-sub {
+  font-size: 14px;
+  color: var(--txt-2);
+  margin: 0 0 26px;
+  line-height: 1.5;
+}
+
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  font-size: 12px;
+  color: var(--txt-3);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+.auth-link {
+  font-size: 13.5px;
+  color: var(--txt-2);
+  text-align: center;
+  margin: 0;
+
+  a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
