@@ -22,6 +22,7 @@
   width: var(--sidebar-w);
   flex-shrink: 0;
   background: var(--sb-bg);
+  border-right: 1px solid var(--sb-div);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -35,6 +36,7 @@
   padding: 20px 20px 16px;
   border-bottom: 1px solid var(--sb-div);
   flex-shrink: 0;
+  text-decoration: none;
 }
 
 .brand-icon {
@@ -57,7 +59,7 @@
 }
 
 .brand-name {
-  color: #fff;
+  color: var(--sb-txt-a);
   font-weight: 700;
   font-size: 15px;
   letter-spacing: -0.01em;
@@ -90,8 +92,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  // Slightly lighter than sb-txt so section headings recede behind nav items
-  color: #4b5563;
+  color: var(--sb-txt);
 }
 
 .nav-item {
@@ -120,7 +121,7 @@
 
   &:hover {
     background: var(--sb-hover);
-    color: #d1d5db;
+    color: var(--sb-txt-a);
   }
 
   // routerLinkActive adds this class when the route is active
@@ -150,7 +151,7 @@
   padding: 9px 10px;
   border-radius: var(--r);
   cursor: pointer;
-  color: #9ca3af;
+  color: var(--sb-txt);
   font-size: 14px;
   font-weight: 500;
   font-family: var(--font);
