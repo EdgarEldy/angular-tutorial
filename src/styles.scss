@@ -1,12 +1,92 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+// Inter from Google Fonts: drives all custom UI typography
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+// Material Icons (filled + outlined): shell and auth pages use outlined variant
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined');
+
+// ── Design tokens ─────────────────────────────────────────────────────────────
+:root {
+  --sidebar-w: 248px;
+  --toolbar-h: 64px;
+
+  --sb-bg: #111827;
+  --sb-txt: #9ca3af;
+  --sb-txt-a: #fff;
+  --sb-active-bg: rgba(99, 102, 241, 0.18);
+  --sb-active-b: #6366f1;
+  --sb-hover: rgba(255, 255, 255, 0.05);
+  --sb-div: rgba(255, 255, 255, 0.08);
+
+  --accent: #6366f1;
+  --accent-h: #4f46e5;
+  --accent-fg: #fff;
+
+  --bg: #f1f5f9;
+  --surface: #fff;
+  --toolbar-bg: #fff;
+
+  --txt-1: #0f172a;
+  --txt-2: #64748b;
+  --txt-3: #94a3b8;
+
+  --border: #e2e8f0;
+  --row-hover: #f8fafc;
+
+  --tag-bg: #eef2ff;
+  --tag-txt: #4338ca;
+
+  --sh-card: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  --r: 8px;
+  --r-lg: 12px;
+
+  --font: 'Inter', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --toolbar-bg: #161b22;
+    --txt-1: #f0f6fc;
+    --txt-2: #8b949e;
+    --txt-3: #6e7681;
+    --border: #30363d;
+    --row-hover: #1c2128;
+    --tag-bg: rgba(99, 102, 241, 0.18);
+    --tag-txt: #a5b4fc;
+    --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.3);
+    --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --toolbar-bg: #161b22;
+  --txt-1: #f0f6fc;
+  --txt-2: #8b949e;
+  --txt-3: #6e7681;
+  --border: #30363d;
+  --row-hover: #1c2128;
+  --tag-bg: rgba(99, 102, 241, 0.18);
+  --tag-txt: #a5b4fc;
+  --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+// ── Angular Material M3 theme ─────────────────────────────────────────────────
 html {
   height: 100%;
+
   @include mat.theme(
     (
       color: (
@@ -19,21 +99,310 @@ html {
   );
 }
 
+// ── Global resets ─────────────────────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
   height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--txt-1);
+  color-scheme: light;
 }
-/* You can add global styles to this file, and also import other style files */
+
+// ── Auth layout ───────────────────────────────────────────────────────────────
+// Full-screen two-column layout shared by all auth pages (login, register,
+// activate-account, forgot-password). Auth pages render outside the shell,
+// directly into <app-root>, so they fill the entire viewport.
+
+.auth-screen {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+// Dark left panel: branding + tagline, hidden on small screens
+.auth-panel {
+  width: 420px;
+  flex-shrink: 0;
+  // Permanently dark, matching the sidebar; does not respond to --surface token
+  background: #111827;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+
+  @media (max-width: 700px) {
+    display: none;
+  }
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+
+  .material-icons-outlined {
+    font-size: 22px;
+  }
+}
+
+.auth-brand-name {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.auth-tagline {
+  color: #9ca3af;
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 280px;
+
+  strong {
+    color: #fff;
+  }
+}
+
+.auth-quote {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+// Right scrollable area containing the card
+.auth-form-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.auth-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 420px;
+  padding: 36px;
+}
+
+.auth-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  color: var(--txt-1);
+}
+
+.auth-sub {
+  font-size: 14px;
+  color: var(--txt-2);
+  margin: 0 0 26px;
+  line-height: 1.5;
+}
+
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  font-size: 12px;
+  color: var(--txt-3);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+.auth-link {
+  font-size: 13.5px;
+  color: var(--txt-2);
+  text-align: center;
+  margin: 0;
+
+  a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ── Shared form primitives ─────────────────────────────────────────────────────
+// Used in auth pages and in CRUD dialogs (categories, products, etc.).
+
+.form-f {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-lbl {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--txt-1);
+
+  span {
+    color: #ef4444;
+    margin-left: 2px;
+  }
+}
+
+.form-inp {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 0 12px;
+  height: 40px;
+  font-size: 14px;
+  color: var(--txt-1);
+  font-family: var(--font);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: var(--accent);
+  }
+
+  &.err {
+    border-color: #ef4444;
+  }
+
+  &::placeholder {
+    color: var(--txt-3);
+  }
+}
+
+.form-hint {
+  font-size: 11.5px;
+  color: var(--txt-2);
+}
+
+// Field-level error shown below an input
+.form-err {
+  font-size: 11.5px;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .material-icons-outlined {
+    font-size: 14px;
+  }
+}
+
+// Banner-level error shown above the form fields (e.g., wrong credentials)
+.form-err-banner {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: #dc2626;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  .material-icons-outlined {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+// ── Shared button utilities ────────────────────────────────────────────────────
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 38px;
+  border-radius: var(--r);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-h);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--txt-1);
+  border: 1px solid var(--border);
+
+  &:hover {
+    background: var(--row-hover);
+  }
+}
+
+// Full-width variant for auth form submit buttons
+.btn-full {
+  width: 100%;
+  height: 42px;
+  font-size: 15px;
+}
+
+// ── Two-column grid (used inside dialogs) ─────────────────────────────────────
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
