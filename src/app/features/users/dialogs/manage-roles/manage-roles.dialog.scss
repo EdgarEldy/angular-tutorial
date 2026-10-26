@@ -5,21 +5,29 @@
 }
 
 .section-label {
-  font-weight: 500;
-  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--txt-2);
+  margin: 0 0 10px;
 }
 
 .empty-hint {
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 0.875rem;
+  font-size: 13px;
+  color: var(--txt-3);
 }
 
-.permissions-list { padding: 8px 0; }
+.permissions-list {
+  padding: 8px 0;
+}
 
 .add-row {
   display: flex;
   gap: 12px;
   align-items: center;
 
-  mat-select { flex: 1; }
+  mat-select {
+    flex: 1;
+  }
 }

@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+.page-actions {
+  margin-bottom: 16px;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 64px 0;
+}
+
+.error-text {
+  font-size: 14px;
+  color: #dc2626;
+  text-align: center;
+  margin: 0;
+}
+
+.detail-card {
+  max-width: 600px;
+}
+
+.section-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--txt-2);
+  margin: 20px 0 10px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 16px;
+  margin: 0 0 4px;
+
+  dt {
+    font-weight: 600;
+    color: var(--txt-2);
+    font-size: 13px;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--txt-1);
+    font-size: 13px;
+  }
+}
+
+.total-value {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+// Apply design tokens to the Material card surface
+:host ::ng-deep mat-card {
+  background: var(--surface);
+  box-shadow: var(--sh-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+:host ::ng-deep mat-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--txt-1);
+}

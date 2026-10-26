@@ -1,28 +1,56 @@
-<div class="activate-container">
-  <mat-card class="activate-card">
-    <mat-card-header>
-      <mat-card-title>Account Activation</mat-card-title>
-    </mat-card-header>
+<div class="auth-screen">
 
-    <mat-card-content>
+  <!-- Left dark panel: brand + tagline -->
+  <div class="auth-panel">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">
+        <span class="material-icons-outlined">bolt</span>
+      </div>
+      <span class="auth-brand-name">Angular Tutorial</span>
+    </div>
+
+    <div class="auth-tagline">
+      <strong>Almost there!</strong> Activating your account takes just a moment.
+      You'll be redirected to the sign-in page once everything is ready.
+    </div>
+
+    <p class="auth-quote">
+      "One click away from building something great."
+    </p>
+  </div>
+
+  <!-- Right area: activation states -->
+  <div class="auth-form-wrap">
+    <div class="auth-card" style="text-align:center">
+
       @if (loading()) {
-        <div class="center">
-          <mat-spinner diameter="48" />
-          <p>Activating your account&hellip;</p>
-        </div>
+        <!-- mat-spinner is queried by ActivateAccountPage spec -->
+        <mat-spinner diameter="52" style="margin:0 auto 20px" />
+        <h2 class="auth-title" style="font-size:18px">Activating your account</h2>
+        <p class="auth-sub">Please wait&hellip;</p>
       } @else if (success()) {
-        <div class="center">
-          <mat-icon class="success-icon">check_circle</mat-icon>
-          <p>Your account has been activated successfully!</p>
-          <a mat-raised-button color="primary" routerLink="/login">Sign in</a>
-        </div>
+        <!-- .success-icon is queried by ActivateAccountPage spec -->
+        <mat-icon class="success-icon" style="font-size:56px;height:56px;width:56px;color:#16a34a">
+          check_circle
+        </mat-icon>
+        <h2 class="auth-title" style="margin-top:16px;font-size:18px">Account activated!</h2>
+        <p class="auth-sub">Your account is now active. You can sign in.</p>
+        <a routerLink="/login" class="btn btn-primary" style="margin-top:4px">
+          Go to sign in
+        </a>
       } @else if (errorMessage()) {
-        <div class="center">
-          <mat-icon class="error-icon">error</mat-icon>
-          <p class="error-text">{{ errorMessage() }}</p>
-          <a mat-stroked-button routerLink="/register">Register again</a>
-        </div>
+        <mat-icon style="font-size:52px;height:52px;width:52px;color:#dc2626">
+          error_outline
+        </mat-icon>
+        <h2 class="auth-title" style="margin-top:16px;font-size:18px">Activation failed</h2>
+        <!-- .error-text is queried by ActivateAccountPage spec -->
+        <p class="error-text auth-sub">{{ errorMessage() }}</p>
+        <a routerLink="/register" class="btn btn-secondary" style="margin-top:4px">
+          Register again
+        </a>
       }
-    </mat-card-content>
-  </mat-card>
+
+    </div>
+  </div>
+
 </div>
