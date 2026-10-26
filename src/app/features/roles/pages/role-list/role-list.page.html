@@ -1,22 +1,21 @@
-<div class="page-header">
-  <h1>Roles</h1>
+<app-page-header title="Roles">
   <button mat-raised-button color="primary" (click)="openCreateDialog()">
     <mat-icon>add</mat-icon>
     New role
   </button>
-</div>
+</app-page-header>
 
 @if (loading()) {
-  <div class="center">
-    <mat-spinner diameter="40" />
-  </div>
-} @else if (error(); as e) {
-  <div class="center">
-    <p class="error-text">{{ e.message }}</p>
-    <button mat-stroked-button (click)="loadRoles()">Retry</button>
-  </div>
+  <app-loading />
+} @else if (error()) {
+  <app-error-banner [error]="error()!" (retry)="loadRoles()" />
 } @else if (roles().length === 0) {
-  <p class="empty-state">No roles defined yet.</p>
+  <app-empty-state
+    icon="shield"
+    title="No roles defined yet"
+    message="Create your first role to start assigning permissions.">
+    <button mat-flat-button color="primary" (click)="openCreateDialog()">New role</button>
+  </app-empty-state>
 } @else {
   <table mat-table [dataSource]="roles()" class="mat-elevation-z2">
     <!-- Role name -->
