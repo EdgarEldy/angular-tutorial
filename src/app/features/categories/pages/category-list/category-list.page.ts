@@ -11,8 +11,12 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DatePipe } from '@angular/common';
+
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header';
+import { LoadingComponent } from '../../../../shared/ui/loading/loading';
+import { ErrorBannerComponent } from '../../../../shared/ui/error-banner/error-banner';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state';
 
 import { Categories } from '../../categories';
 import { CategoryResponse } from '../../models/category-response.model';
@@ -50,9 +54,12 @@ import { HasRoleDirective } from '../../../../core/auth/has-permission';
     MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     DatePipe,
     HasRoleDirective,
+    PageHeaderComponent,
+    LoadingComponent,
+    ErrorBannerComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './category-list.page.html',
   styleUrl: './category-list.page.scss',

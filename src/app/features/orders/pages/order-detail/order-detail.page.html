@@ -6,14 +6,9 @@
 </div>
 
 @if (loading()) {
-  <div class="center">
-    <mat-spinner diameter="40" />
-  </div>
-} @else if (error(); as e) {
-  <div class="center">
-    <p class="error-text">{{ e.message }}</p>
-    <button mat-stroked-button (click)="loadOrder()">Retry</button>
-  </div>
+  <app-loading />
+} @else if (error()) {
+  <app-error-banner [error]="error()!" (retry)="loadOrder()" />
 } @else if (order(); as o) {
   <mat-card class="detail-card">
     <mat-card-header>

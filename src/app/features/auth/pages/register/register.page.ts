@@ -13,10 +13,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Auth } from '../../../../core/auth/auth';
@@ -56,15 +52,7 @@ export const passwordsMatch: ValidatorFn = (
   selector: 'app-register-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-  ],
+  imports: [ReactiveFormsModule, RouterLink, MatProgressSpinnerModule],
   templateUrl: './register.page.html',
   styleUrl: './register.page.scss',
 })
@@ -75,6 +63,12 @@ export class RegisterPage {
   protected readonly loading = signal(false);
   protected readonly successMessage = signal<string | null>(null);
   protected readonly serverError = signal<string | null>(null);
+
+  /** Toggles visibility for the password field. */
+  protected readonly showPassword = signal(false);
+
+  /** Toggles visibility for the confirm-password field. */
+  protected readonly showConfirmPassword = signal(false);
 
   protected readonly form = this.fb.nonNullable.group(
     {

@@ -10,8 +10,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
+
+import { LoadingComponent } from '../../../../shared/ui/loading/loading';
+import { ErrorBannerComponent } from '../../../../shared/ui/error-banner/error-banner';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state';
 
 import { Customers } from '../../customers';
 import { CustomerResponse } from '../../models/customer-response.model';
@@ -50,9 +53,11 @@ import { MoneyPipe } from '../../../../shared/pipes/money-pipe';
     MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     MatCardModule,
     MoneyPipe,
+    LoadingComponent,
+    ErrorBannerComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './customer-detail.page.html',
   styleUrl: './customer-detail.page.scss',

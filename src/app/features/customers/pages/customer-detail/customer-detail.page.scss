@@ -39,75 +39,53 @@
   color: var(--txt-2);
 }
 
-.section-table {
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-.center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 64px 0;
-}
-
-.error-text {
-  font-size: 14px;
-  color: #dc2626;
-  text-align: center;
-  margin: 0;
-}
-
-.empty-state {
-  font-size: 14px;
-  color: var(--txt-3);
-  padding: 16px 0;
-}
-
-// Override Material table colors with our design tokens
-:host ::ng-deep .mat-mdc-table {
+.table-container {
   background: var(--surface);
-  box-shadow: var(--sh-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-}
-
-:host ::ng-deep .mat-mdc-header-row {
-  background: var(--bg);
-}
-
-:host ::ng-deep .mat-mdc-header-cell {
-  color: var(--txt-2);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border-bottom-color: var(--border);
-}
-
-:host ::ng-deep .mat-mdc-row {
-  border-bottom-color: var(--border);
-
-  &:hover {
-    background: var(--row-hover);
-  }
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-:host ::ng-deep .mat-mdc-cell {
-  color: var(--txt-1);
-  font-size: 13.5px;
-  border-bottom: none;
-}
-
-:host ::ng-deep mat-card {
-  background: var(--surface);
-  box-shadow: var(--sh-card);
-  border: 1px solid var(--border);
   border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  overflow: hidden;
+  margin-bottom: 8px;
+
+  ::ng-deep {
+    .mat-mdc-table {
+      background: var(--surface);
+      width: 100%;
+    }
+
+    .mat-mdc-header-cell {
+      background: var(--bg);
+      color: var(--txt-2);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-bottom-color: var(--border);
+    }
+
+    .mat-mdc-cell {
+      color: var(--txt-1);
+      border-bottom-color: var(--border);
+      font-size: 0.875rem;
+    }
+
+    .mat-mdc-row:hover .mat-mdc-cell {
+      background: var(--row-hover);
+    }
+
+    .mat-mdc-paginator {
+      background: var(--surface);
+      color: var(--txt-2);
+      border-top: 1px solid var(--border);
+    }
+  }
+}
+
+// Restyle mat-card to match the design token card system
+::ng-deep .info-card {
+  &.mat-mdc-card {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--sh-card) !important;
+    border-radius: var(--r-lg) !important;
+  }
 }

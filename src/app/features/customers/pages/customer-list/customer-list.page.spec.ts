@@ -103,7 +103,7 @@ describe('CustomerListPage', () => {
     fixture.detectChanges();
     expect(component['error']()).toEqual(err);
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.error-text')).toBeTruthy();
+    expect(compiled.querySelector('app-error-banner')).toBeTruthy();
   });
 
   it('calls getCustomers with search when onSearchFilter is called', () => {

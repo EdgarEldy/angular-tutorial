@@ -8,8 +8,9 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
+import { LoadingComponent } from '../../../../shared/ui/loading/loading';
+import { ErrorBannerComponent } from '../../../../shared/ui/error-banner/error-banner';
 
 import { Orders } from '../../orders';
 import { OrderResponse } from '../../../customers/models/order-response.model';
@@ -43,9 +44,10 @@ import { MoneyPipe } from '../../../../shared/pipes/money-pipe';
     RouterLink,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     MatCardModule,
     MoneyPipe,
+    LoadingComponent,
+    ErrorBannerComponent,
   ],
   templateUrl: './order-detail.page.html',
   styleUrl: './order-detail.page.scss',

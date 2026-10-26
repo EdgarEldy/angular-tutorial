@@ -9,7 +9,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header';
+import { LoadingComponent } from '../../../../shared/ui/loading/loading';
+import { ErrorBannerComponent } from '../../../../shared/ui/error-banner/error-banner';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state';
 
 import { Permissions } from '../../permissions';
 import { PermissionResponse } from '../../../auth/models/user-response.model';
@@ -36,7 +40,10 @@ import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/con
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    PageHeaderComponent,
+    LoadingComponent,
+    ErrorBannerComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './permission-list.page.html',
   styleUrl: './permission-list.page.scss',

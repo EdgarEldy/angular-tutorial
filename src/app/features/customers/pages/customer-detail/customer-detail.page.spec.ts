@@ -142,6 +142,6 @@ describe('CustomerDetailPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.error-text')?.textContent).toContain('Customer not found');
+    expect(compiled.querySelector('app-error-banner')?.textContent).toContain('Customer not found');
   });
 });

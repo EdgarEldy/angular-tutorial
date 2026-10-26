@@ -6,10 +6,6 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Auth } from '../../../../core/auth/auth';
@@ -30,15 +26,7 @@ import { passwordsMatch } from '../register/register.page';
   selector: 'app-reset-password-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-  ],
+  imports: [ReactiveFormsModule, RouterLink, MatProgressSpinnerModule],
   templateUrl: './reset-password.page.html',
   styleUrl: './reset-password.page.scss',
 })
@@ -50,6 +38,12 @@ export class ResetPasswordPage {
 
   protected readonly loading = signal(false);
   protected readonly pageError = signal<string | null>(null);
+
+  /** Toggles visibility for the new-password field. */
+  protected readonly showPassword = signal(false);
+
+  /** Toggles visibility for the confirm-password field. */
+  protected readonly showConfirmPassword = signal(false);
 
   protected readonly form = this.fb.nonNullable.group(
     {
