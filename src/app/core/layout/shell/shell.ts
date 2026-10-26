@@ -57,8 +57,16 @@ export class ShellComponent {
 
   // ── Theme ──────────────────────────────────────────────────────────────────
 
-  /** Tracks whether dark mode is currently active. */
-  protected readonly darkMode = signal(false);
+  /**
+   * Tracks whether dark mode is currently active.
+   *
+   * Seeded from the OS preference so the first render already matches
+   * the user's system theme without waiting for a manual toggle.
+   * window.matchMedia is mocked in tests because jsdom does not implement it.
+   */
+  protected readonly darkMode = signal(
+    window.matchMedia('(prefers-color-scheme: dark)').matches,
+  );
 
   /**
    * Reflects the `darkMode` signal onto `<html data-theme>` as a side effect.
