@@ -9,8 +9,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DatePipe, CurrencyPipe } from '@angular/common';
+
+import { LoadingComponent } from '../../../../shared/ui/loading/loading';
+import { ErrorBannerComponent } from '../../../../shared/ui/error-banner/error-banner';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state';
 
 import { Categories } from '../../categories';
 import { CategoryResponse } from '../../models/category-response.model';
@@ -37,9 +40,11 @@ import { AppError } from '../../../../core/http/app-error.model';
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     DatePipe,
     CurrencyPipe,
+    LoadingComponent,
+    ErrorBannerComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './category-detail.page.html',
   styleUrl: './category-detail.page.scss',
