@@ -1,53 +1,104 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <mat-card-title>Sign in</mat-card-title>
-    </mat-card-header>
+<div class="auth-screen">
 
-    <mat-card-content>
+  <!-- Left dark panel: brand + tagline -->
+  <div class="auth-panel">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">
+        <span class="material-icons-outlined">bolt</span>
+      </div>
+      <span class="auth-brand-name">Angular Tutorial</span>
+    </div>
+
+    <div class="auth-tagline">
+      <strong>Build production-grade Angular apps</strong> with real APIs, JWT
+      authentication, and best practices from day one.
+    </div>
+
+    <p class="auth-quote">
+      "The best way to learn is to build something real."
+    </p>
+  </div>
+
+  <!-- Right area: form card -->
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">Sign in to your account to continue</p>
+
       <form [formGroup]="form" (ngSubmit)="submit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" autocomplete="email" />
-          @if (form.controls.email.hasError('required')) {
-            <mat-error>Email is required</mat-error>
-          } @else if (form.controls.email.hasError('email')) {
-            <mat-error>Enter a valid email address</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput type="password" formControlName="password" autocomplete="current-password" />
-          @if (form.controls.password.hasError('required')) {
-            <mat-error>Password is required</mat-error>
-          } @else if (form.controls.password.hasError('minlength')) {
-            <mat-error>Password must be at least 8 characters</mat-error>
-          }
-        </mat-form-field>
 
         @if (formError()) {
-          <p class="form-error">{{ formError() }}</p>
+          <!-- .form-error is queried by LoginPage spec -->
+          <div class="form-err-banner form-error">
+            <span class="material-icons-outlined">error_outline</span>
+            {{ formError() }}
+          </div>
         }
 
+        <div class="auth-fields">
+
+          <div class="form-f">
+            <label class="form-lbl" for="login-email">
+              Email <span aria-hidden="true">*</span>
+            </label>
+            <input
+              id="login-email"
+              class="form-inp"
+              [class.err]="form.controls.email.invalid && form.controls.email.touched"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="you@example.com" />
+            @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+              <span class="form-err">Email is required</span>
+            } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
+              <span class="form-err">Enter a valid email address</span>
+            }
+          </div>
+
+          <div class="form-f">
+            <label class="form-lbl" for="login-password">
+              Password <span aria-hidden="true">*</span>
+            </label>
+            <input
+              id="login-password"
+              class="form-inp"
+              [class.err]="form.controls.password.invalid && form.controls.password.touched"
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="••••••••" />
+            @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+              <span class="form-err">Password is required</span>
+            } @else if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+              <span class="form-err">At least 8 characters</span>
+            }
+          </div>
+
+        </div>
+
         <button
-          mat-raised-button
-          color="primary"
           type="submit"
-          class="full-width"
+          class="btn btn-primary btn-full"
           [disabled]="loading() || form.invalid">
           @if (loading()) {
-            <mat-spinner diameter="20" />
+            <mat-spinner diameter="18" />
           } @else {
             Sign in
           }
         </button>
-      </form>
-    </mat-card-content>
 
-    <mat-card-actions>
-      <a mat-button routerLink="/register">Create account</a>
-      <a mat-button routerLink="/forgot-password">Forgot password?</a>
-    </mat-card-actions>
-  </mat-card>
+      </form>
+
+      <div class="auth-divider">or</div>
+
+      <p class="auth-link">
+        Don't have an account? <a routerLink="/register">Create one</a>
+      </p>
+      <p class="auth-link" style="margin-top:8px">
+        <a routerLink="/forgot-password">Forgot your password?</a>
+      </p>
+    </div>
+  </div>
+
 </div>

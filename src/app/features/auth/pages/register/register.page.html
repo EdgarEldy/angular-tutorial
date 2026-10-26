@@ -1,87 +1,167 @@
-<div class="register-container">
-  <mat-card class="register-card">
-    <mat-card-header>
-      <mat-card-title>Create account</mat-card-title>
-    </mat-card-header>
+<div class="auth-screen">
 
-    <mat-card-content>
+  <!-- Left dark panel: brand + tagline -->
+  <div class="auth-panel">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">
+        <span class="material-icons-outlined">bolt</span>
+      </div>
+      <span class="auth-brand-name">Angular Tutorial</span>
+    </div>
+
+    <div class="auth-tagline">
+      <strong>Join the tutorial</strong> and build a full-stack Angular 21
+      application step by step with real JWT-secured REST APIs.
+    </div>
+
+    <p class="auth-quote">
+      "Every expert was once a beginner who refused to give up."
+    </p>
+  </div>
+
+  <!-- Right area: form card or success message -->
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+
       @if (successMessage()) {
-        <p class="success-message">{{ successMessage() }}</p>
-        <a mat-stroked-button routerLink="/login">Go to sign in</a>
+        <!-- .success-message is queried by RegisterPage spec -->
+        <div class="success-message" role="status">
+          <h1 class="auth-title" style="color:#16a34a">Check your inbox</h1>
+          <p class="auth-sub">{{ successMessage() }}</p>
+          <a routerLink="/login" class="btn btn-primary btn-full">Go to sign in</a>
+        </div>
       } @else {
+
+        <h1 class="auth-title">Create account</h1>
+        <p class="auth-sub">Fill in your details to get started</p>
+
+        @if (serverError()) {
+          <div class="form-err-banner" style="margin-bottom:16px" role="alert">
+            <span class="material-icons-outlined">error_outline</span>
+            {{ serverError() }}
+          </div>
+        }
+
         <form [formGroup]="form" (ngSubmit)="submit()">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>First name</mat-label>
-            <input matInput formControlName="first_name" autocomplete="given-name" />
-            @if (form.controls.first_name.hasError('required')) {
-              <mat-error>First name is required</mat-error>
-            } @else if (form.controls.first_name.hasError('serverError')) {
-              <mat-error>{{ form.controls.first_name.getError('serverError') }}</mat-error>
-            }
-          </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Last name</mat-label>
-            <input matInput formControlName="last_name" autocomplete="family-name" />
-            @if (form.controls.last_name.hasError('required')) {
-              <mat-error>Last name is required</mat-error>
-            } @else if (form.controls.last_name.hasError('serverError')) {
-              <mat-error>{{ form.controls.last_name.getError('serverError') }}</mat-error>
-            }
-          </mat-form-field>
+          <div class="auth-fields">
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email" autocomplete="email" />
-            @if (form.controls.email.hasError('required')) {
-              <mat-error>Email is required</mat-error>
-            } @else if (form.controls.email.hasError('email')) {
-              <mat-error>Enter a valid email address</mat-error>
-            } @else if (form.controls.email.hasError('serverError')) {
-              <mat-error>{{ form.controls.email.getError('serverError') }}</mat-error>
-            }
-          </mat-form-field>
+            <div class="row2">
+              <div class="form-f">
+                <label class="form-lbl" for="reg-first">
+                  First name <span aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="reg-first"
+                  class="form-inp"
+                  [class.err]="form.controls.first_name.invalid && form.controls.first_name.touched"
+                  formControlName="first_name"
+                  autocomplete="given-name"
+                  placeholder="Jane" />
+                @if (form.controls.first_name.touched && form.controls.first_name.hasError('required')) {
+                  <span class="form-err">Required</span>
+                } @else if (form.controls.first_name.hasError('serverError')) {
+                  <span class="form-err">{{ form.controls.first_name.getError('serverError') }}</span>
+                }
+              </div>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput type="password" formControlName="password" autocomplete="new-password" />
-            @if (form.controls.password.hasError('required')) {
-              <mat-error>Password is required</mat-error>
-            } @else if (form.controls.password.hasError('minlength')) {
-              <mat-error>Password must be at least 8 characters</mat-error>
-            }
-          </mat-form-field>
+              <div class="form-f">
+                <label class="form-lbl" for="reg-last">
+                  Last name <span aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="reg-last"
+                  class="form-inp"
+                  [class.err]="form.controls.last_name.invalid && form.controls.last_name.touched"
+                  formControlName="last_name"
+                  autocomplete="family-name"
+                  placeholder="Doe" />
+                @if (form.controls.last_name.touched && form.controls.last_name.hasError('required')) {
+                  <span class="form-err">Required</span>
+                } @else if (form.controls.last_name.hasError('serverError')) {
+                  <span class="form-err">{{ form.controls.last_name.getError('serverError') }}</span>
+                }
+              </div>
+            </div>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Confirm password</mat-label>
-            <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
-            @if (form.controls.confirmPassword.hasError('passwordMismatch')) {
-              <mat-error>Passwords do not match</mat-error>
-            }
-          </mat-form-field>
+            <div class="form-f">
+              <label class="form-lbl" for="reg-email">
+                Email <span aria-hidden="true">*</span>
+              </label>
+              <input
+                id="reg-email"
+                class="form-inp"
+                [class.err]="form.controls.email.invalid && form.controls.email.touched"
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                placeholder="jane@example.com" />
+              @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                <span class="form-err">Email is required</span>
+              } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                <span class="form-err">Enter a valid email address</span>
+              } @else if (form.controls.email.hasError('serverError')) {
+                <span class="form-err">{{ form.controls.email.getError('serverError') }}</span>
+              }
+            </div>
 
-          @if (serverError()) {
-            <p class="form-error">{{ serverError() }}</p>
-          }
+            <div class="form-f">
+              <label class="form-lbl" for="reg-password">
+                Password <span aria-hidden="true">*</span>
+              </label>
+              <input
+                id="reg-password"
+                class="form-inp"
+                [class.err]="form.controls.password.invalid && form.controls.password.touched"
+                type="password"
+                formControlName="password"
+                autocomplete="new-password"
+                placeholder="••••••••" />
+              @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+                <span class="form-err">Password is required</span>
+              } @else if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+                <span class="form-err">At least 8 characters</span>
+              }
+            </div>
+
+            <div class="form-f">
+              <label class="form-lbl" for="reg-confirm">
+                Confirm password <span aria-hidden="true">*</span>
+              </label>
+              <input
+                id="reg-confirm"
+                class="form-inp"
+                [class.err]="form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched"
+                type="password"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                placeholder="••••••••" />
+              @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.hasError('passwordMismatch')) {
+                <span class="form-err">Passwords do not match</span>
+              }
+            </div>
+
+          </div>
 
           <button
-            mat-raised-button
-            color="primary"
             type="submit"
-            class="full-width"
+            class="btn btn-primary btn-full"
             [disabled]="loading()">
             @if (loading()) {
-              <mat-spinner diameter="20" />
+              <mat-spinner diameter="18" />
             } @else {
               Create account
             }
           </button>
-        </form>
-      }
-    </mat-card-content>
 
-    <mat-card-actions>
-      <a mat-button routerLink="/login">Already have an account?</a>
-    </mat-card-actions>
-  </mat-card>
+        </form>
+
+        <p class="auth-link" style="margin-top:20px">
+          Already have an account? <a routerLink="/login">Sign in</a>
+        </p>
+
+      }
+    </div>
+  </div>
+
 </div>
