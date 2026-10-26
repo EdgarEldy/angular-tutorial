@@ -7,46 +7,61 @@
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined');
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
+// Every custom component reads these CSS custom properties instead of
+// hard-coded values, so dark mode is a single attribute swap on :root.
 :root {
+  // Layout dimensions
   --sidebar-w: 248px;
   --toolbar-h: 64px;
 
-  --sb-bg: #111827;
-  --sb-txt: #9ca3af;
-  --sb-txt-a: #fff;
-  --sb-active-bg: rgba(99, 102, 241, 0.18);
+  // Sidebar: light-mode defaults; dark-mode blocks below override to the dark palette
+  --sb-bg: #fff;
+  --sb-txt: #475569;
+  --sb-txt-a: #0f172a;
+  --sb-active-bg: rgba(99, 102, 241, 0.1);
   --sb-active-b: #6366f1;
-  --sb-hover: rgba(255, 255, 255, 0.05);
-  --sb-div: rgba(255, 255, 255, 0.08);
+  --sb-hover: rgba(0, 0, 0, 0.04);
+  --sb-div: #e2e8f0;
 
+  // Accent: indigo #6366f1 used for active states, buttons, links
   --accent: #6366f1;
   --accent-h: #4f46e5;
   --accent-fg: #fff;
 
+  // App surfaces (light theme defaults)
   --bg: #f1f5f9;
   --surface: #fff;
   --toolbar-bg: #fff;
 
+  // Text hierarchy
   --txt-1: #0f172a;
   --txt-2: #64748b;
   --txt-3: #94a3b8;
 
+  // Borders & hover states
   --border: #e2e8f0;
   --row-hover: #f8fafc;
 
+  // Status tags (e.g., category badge on a product row)
   --tag-bg: #eef2ff;
   --tag-txt: #4338ca;
 
+  // Elevation shadows: three levels used across cards, dropdowns and dialogs
   --sh-card: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.06);
   --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
   --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1);
 
+  // Border radii
   --r: 8px;
   --r-lg: 12px;
 
+  // Font stack
   --font: 'Inter', system-ui, sans-serif;
 }
 
+// ── Dark mode: system preference ──────────────────────────────────────────────
+// Applied when the OS is in dark mode and the user has not explicitly chosen
+// light mode via the in-app toggle (data-theme="light" opt-out).
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --bg: #0d1117;
@@ -62,10 +77,25 @@
     --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.3);
     --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
     --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    --sb-bg: #111827;
+    --sb-txt: #9ca3af;
+    --sb-txt-a: #fff;
+    --sb-active-bg: rgba(99, 102, 241, 0.18);
+    --sb-hover: rgba(255, 255, 255, 0.05);
+    --sb-div: rgba(255, 255, 255, 0.08);
+
+    // mat.theme() injects --mat-paginator-* tokens with hardcoded light values.
+    // Re-pointing them to our surface/text tokens keeps the paginator dark.
+    --mat-paginator-container-background-color: var(--surface);
+    --mat-paginator-container-text-color: var(--txt-1);
+
     color-scheme: dark;
   }
 }
 
+// The ShellComponent sets [data-theme="dark"] on <html> when the user clicks
+// the theme toggle, overriding the system preference in either direction.
 :root[data-theme='dark'] {
   --bg: #0d1117;
   --surface: #161b22;
@@ -80,6 +110,17 @@
   --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.3);
   --sh-drop: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
   --sh-dialog: 0 24px 64px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  --sb-bg: #111827;
+  --sb-txt: #9ca3af;
+  --sb-txt-a: #fff;
+  --sb-active-bg: rgba(99, 102, 241, 0.18);
+  --sb-hover: rgba(255, 255, 255, 0.05);
+  --sb-div: rgba(255, 255, 255, 0.08);
+
+  --mat-paginator-container-background-color: var(--surface);
+  --mat-paginator-container-text-color: var(--txt-1);
+
   color-scheme: dark;
 }
 
@@ -87,6 +128,9 @@
 html {
   height: 100%;
 
+  // Keep the Material palette (azure/blue) so that Material-specific
+  // components (dialogs, snackbars, progress indicators) render coherently.
+  // Our custom components use --accent instead of Material's primary color.
   @include mat.theme(
     (
       color: (
@@ -112,13 +156,15 @@ body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--txt-1);
+
+  // Start in light mode; the shell toggles this via [data-theme="dark"]
   color-scheme: light;
 }
 
 // ── Auth layout ───────────────────────────────────────────────────────────────
 // Full-screen two-column layout shared by all auth pages (login, register,
-// activate-account, forgot-password). Auth pages render outside the shell,
-// directly into <app-root>, so they fill the entire viewport.
+// activate-account, forgot-password, reset-password). Auth pages render outside
+// the shell, directly into <app-root>, so they fill the entire viewport.
 
 .auth-screen {
   display: flex;
@@ -287,6 +333,14 @@ body {
   }
 }
 
+// Wrapper used when a suffix icon (e.g. eye toggle) sits inside the field
+.form-inp-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
 .form-inp {
   background: var(--bg);
   border: 1.5px solid var(--border);
@@ -298,6 +352,7 @@ body {
   font-family: var(--font);
   outline: none;
   width: 100%;
+  box-sizing: border-box;
   transition: border-color 0.15s;
 
   &:focus {
@@ -310,6 +365,35 @@ body {
 
   &::placeholder {
     color: var(--txt-3);
+  }
+}
+
+// Input with a trailing icon button: extra right padding prevents text overlap
+.form-inp-icon {
+  padding-right: 40px;
+}
+
+// Icon button placed at the right edge of .form-inp-wrap
+.form-inp-suffix {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--txt-2);
+  padding: 0;
+
+  .material-icons-outlined {
+    font-size: 18px;
+  }
+
+  &:hover {
+    color: var(--txt-1);
   }
 }
 

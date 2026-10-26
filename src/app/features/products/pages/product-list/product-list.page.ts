@@ -15,7 +15,6 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -31,6 +30,10 @@ import {
   ProductFormDialogData,
 } from '../../dialogs/product-form/product-form.dialog';
 import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header';
+import { LoadingComponent } from '../../../../shared/ui/loading/loading';
+import { ErrorBannerComponent } from '../../../../shared/ui/error-banner/error-banner';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state';
 import { HasRoleDirective } from '../../../../core/auth/has-permission';
 import { MoneyPipe } from '../../../../shared/pipes/money-pipe';
 
@@ -63,12 +66,15 @@ import { MoneyPipe } from '../../../../shared/pipes/money-pipe';
     MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     HasRoleDirective,
     MoneyPipe,
+    PageHeaderComponent,
+    LoadingComponent,
+    ErrorBannerComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './product-list.page.html',
   styleUrl: './product-list.page.scss',

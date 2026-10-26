@@ -10,7 +10,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header';
+import { LoadingComponent } from '../../../../shared/ui/loading/loading';
+import { ErrorBannerComponent } from '../../../../shared/ui/error-banner/error-banner';
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state';
 
 import { Roles } from '../../roles';
 import { RoleResponse } from '../../../auth/models/user-response.model';
@@ -42,7 +46,10 @@ import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/con
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatProgressSpinnerModule,
+    PageHeaderComponent,
+    LoadingComponent,
+    ErrorBannerComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './role-list.page.html',
   styleUrl: './role-list.page.scss',

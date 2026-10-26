@@ -104,7 +104,7 @@ describe('ProductListPage', () => {
     fixture.detectChanges();
     expect(component['error']()).toEqual(err);
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.error-text')).toBeTruthy();
+    expect(compiled.querySelector('app-error-banner')).toBeTruthy();
   });
 
   it('calls getProducts with categoryId when category filter changes', () => {
