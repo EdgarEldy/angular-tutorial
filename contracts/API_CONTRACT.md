@@ -1,23 +1,24 @@
 # API Contract
 
-> **Source**: Derived from `README.md` (backends were not running at setup time).
-> Run `/contract-sync` once the backends are up to replace the OpenAPI JSON stubs with live specs.
-> This Markdown file is the authoritative reference for `feature/core-architecture`.
+> **Source**: Generated from `contracts/business.openapi.json` (downloaded from
+> `http://localhost:8080/v3/api-docs` on 2026-10-31).
+> SST (spring-security-tutorial) has been decommissioned. SBT (spring-boot-tutorial)
+> now owns all endpoints. Run `/contract-sync` once SBT is running to refresh the spec.
 
 ---
 
-## Common conventions (both APIs)
+## Single backend
 
 | Item | Value |
 |---|---|
+| Base URL (env) | `environment.apiUrl` = `/api/v1` |
 | Auth header | `Authorization: Bearer <token>` |
 | JWT lifetime | 1 hour, no refresh |
 | Response envelope | `ApiResponse<T>` |
 | Paginated lists | `data` is `PageResponse<T>` |
-| Plain lists | `data` is `T[]` (roles, permissions) |
 | Errors | `success: false`, `message`, `data` is `ProblemDetail` |
 | Validation errors | `ProblemDetail` + `fieldErrors: Record<string, string>` |
-| JSON naming | Mostly snake_case (`first_name`, `unit_price`) but not everywhere |
+| JSON naming | snake_case (`unit_price`, `role_name`, `account_locked`) |
 | Pagination params | `page` (0-based), `size`, `sort` (e.g. `productName,asc`) |
 
 ### Shared TypeScript models
@@ -34,7 +35,7 @@ interface ProblemDetail   { type?: string; title: string; status: number; detail
 | HTTP | AppError.kind | UI behaviour |
 |---|---|---|
 | 400 | `VALIDATION` | Map fieldErrors onto form controls; show message inline; dialog stays open |
-| 401 | `UNAUTHENTICATED` | Clear session, redirect to `/login` with returnUrl. **Exception**: 401 from `POST /api/auth/login` -> show message on the login form |
+| 401 | `UNAUTHENTICATED` | Clear session, redirect to `/login` with returnUrl. **Exception**: 401 from `POST /api/v1/auth/login` -> show message on the login form |
 | 403 | `FORBIDDEN` | Show snackbar |
 | 404 | `NOT_FOUND` | Not-found state on detail pages; "item no longer exists" in edit dialogs |
 | 409 | `CONFLICT` | Show message, offer to reload (product modified elsewhere) |
@@ -46,7 +47,7 @@ interface ProblemDetail   { type?: string; title: string; status: number; detail
 
 ```ts
 interface JwtClaims {
-  sub:         string;    // user email
+  sub:         string;    // username (not email)
   roles:       string[];  // uppercase role names, e.g. ['ADMIN']
   permissions: string[];  // RESOURCE:ACTION strings, e.g. ['PRODUCT:READ']
   exp:         number;    // Unix timestamp (seconds)
@@ -56,64 +57,63 @@ interface JwtClaims {
 
 ---
 
-## Identity and RBAC API (`environment.identityApiUrl` = `/api`)
-
-### Authentication endpoints
+## Auth endpoints (`/api/v1/auth`)
 
 | Method | Path | Body | Access | Notes |
 |---|---|---|---|---|
-| POST | `/api/auth/register` | `RegisterRequest` | Public | Creates **disabled** account; sends activation email; returns `UserResponse` |
-| GET | `/api/auth/activate-account?token=` | — | Public | Activates account; 400 on invalid/expired token |
-| POST | `/api/auth/login` | `LoginRequest` | Public | Returns `AuthResponse`; 401 for wrong credentials, locked or disabled account |
-| POST | `/api/auth/logout` | — | Authenticated | Blacklists JWT server-side; call it even if you then discard the token locally |
-| GET | `/api/auth/me` | — | Authenticated | Returns `UserResponse` with **empty** `roles` list |
-| POST | `/api/auth/forgot-password` | `ForgotPasswordRequest` | Public | Sends reset email; always 200 |
-| POST | `/api/auth/reset-password` | `ResetPasswordRequest` | Public | Consumes token, sets new password; 400 on invalid/expired token |
+| POST | `/api/v1/auth/register` | `RegisterRequest` | Public | Creates disabled account; sends activation email; returns `UserResponse`; 422 if username/email taken |
+| GET | `/api/v1/auth/activate?token=` | -- | Public | Activates account; returns `UserResponse`; 400 on invalid/expired token |
+| POST | `/api/v1/auth/login` | `LoginRequest` | Public | Returns `AuthResponse`; 401 for wrong credentials, locked or disabled account |
+| POST | `/api/v1/auth/logout` | -- | Authenticated | Blacklists JWT server-side via `Authorization` header; call even if token is locally discarded |
+| GET | `/api/v1/auth/me` | -- | Authenticated | Returns `UserResponse` |
+| POST | `/api/v1/auth/forgot-password` | `ForgotPasswordRequest` | Public | Sends reset email; always 200 |
+| POST | `/api/v1/auth/reset-password` | `ResetPasswordRequest` | Public | Consumes token, sets new password; 400 on invalid/expired token |
 
 **Models:**
 
 ```ts
-interface RegisterRequest       { first_name: string; last_name: string; email: string; password: string }
+interface RegisterRequest       { username: string; email: string; password: string }
 interface LoginRequest          { email: string; password: string }
-interface AuthResponse          { token: string }
+interface AuthResponse          { token: string; token_type: string; username: string }
 interface ForgotPasswordRequest { email: string }
 interface ResetPasswordRequest  { token: string; new_password: string }
 ```
 
-### Users endpoints
+---
 
-| Method | Path | Body | Access | Notes |
-|---|---|---|---|---|
-| GET | `/api/users` | — | ADMIN | Paginated; `roles` empty in the list |
-| GET | `/api/users/{id}` | — | ADMIN or owner | Detail with `roles` and `permissions` |
-| PUT | `/api/users/{id}` | `UpdateProfileRequest` | ADMIN or owner | Updates first/last name only |
-| DELETE | `/api/users/{id}` | — | ADMIN | |
-| PATCH | `/api/users/{id}/lock` | — | ADMIN | 422 if locking own account |
-| PATCH | `/api/users/{id}/unlock` | — | ADMIN | |
-| POST | `/api/users/{userId}/roles/{roleId}` | — | ADMIN | Returns `UserResponse` with roles |
-| DELETE | `/api/users/{userId}/roles/{roleId}` | — | ADMIN | Returns `UserResponse` with roles |
+## Users endpoints (`/api/v1/users`) -- ADMIN required
+
+| Method | Path | Body | Notes |
+|---|---|---|---|
+| GET | `/api/v1/users` | -- | Paginated; params: `page`, `size`, `sort` |
+| GET | `/api/v1/users/{id}` | -- | Detail with roles and permissions |
+| PUT | `/api/v1/users/{id}` | `UpdateProfileRequest` | Updates username and/or email; 422 if already in use |
+| DELETE | `/api/v1/users/{id}` | -- | |
+| PATCH | `/api/v1/users/{id}/lock` | -- | Returns `UserResponse`; 422 if locking own account |
+| PATCH | `/api/v1/users/{id}/unlock` | -- | Returns `UserResponse` |
+| PUT | `/api/v1/users/{id}/roles` | `AssignRolesRequest` | Replaces the full role set; returns `UserResponse` |
 
 **Models:**
 
 ```ts
-interface UserResponse       { id: number; first_name: string; last_name: string; email: string;
-                               enabled: boolean; account_locked: boolean; roles: RoleResponse[] }
-interface UpdateProfileRequest { first_name: string; last_name: string }
+interface UserResponse        { id: number; username: string; email: string;
+                                enabled: boolean; account_locked: boolean; roles: RoleResponse[] }
+interface UpdateProfileRequest { username?: string; email?: string }
+interface AssignRolesRequest   { role_ids: number[] }
 ```
 
-### Roles and permissions endpoints (all ADMIN)
+---
+
+## Roles endpoints (`/api/v1/roles`) -- ADMIN required
 
 | Method | Path | Body | Notes |
 |---|---|---|---|
-| GET | `/api/roles` | — | Plain array; each role with its permissions |
-| POST | `/api/roles` | `RoleRequest` | 201 |
-| PUT | `/api/roles/{id}` | `RoleRequest` | |
-| DELETE | `/api/roles/{id}` | — | 422 if still assigned to users |
-| POST | `/api/roles/{roleId}/permissions/{permissionId}` | — | Returns updated `RoleResponse` |
-| DELETE | `/api/roles/{roleId}/permissions/{permissionId}` | — | Returns updated `RoleResponse` |
-| GET | `/api/permissions` | — | Plain array |
-| POST | `/api/permissions` | `PermissionRequest` | 201 |
-| DELETE | `/api/permissions/{id}` | — | 422 if still assigned to a role |
+| GET | `/api/v1/roles` | -- | **Paginated** (`PageResponse<RoleResponse>`); pass `size=1000` to load all |
+| POST | `/api/v1/roles` | `RoleRequest` | |
+| PUT | `/api/v1/roles/{id}` | `RoleRequest` | |
+| DELETE | `/api/v1/roles/{id}` | -- | 422 if still assigned to users |
+| POST | `/api/v1/roles/{roleId}/permissions/{permissionId}` | -- | Returns updated `RoleResponse` |
+| DELETE | `/api/v1/roles/{roleId}/permissions/{permissionId}` | -- | Returns updated `RoleResponse` |
 
 **Models:**
 
@@ -126,9 +126,17 @@ interface RoleRequest        { role_name: string }
 
 ---
 
-## Business API (`environment.apiUrl` = `/api/v1`)
+## Permissions endpoints (`/api/v1/permissions`) -- ADMIN required
 
-### Categories
+| Method | Path | Body | Notes |
+|---|---|---|---|
+| GET | `/api/v1/permissions` | -- | **Paginated** (`PageResponse<PermissionResponse>`); pass `size=1000` to load all |
+| POST | `/api/v1/permissions` | `PermissionRequest` | |
+| DELETE | `/api/v1/permissions/{id}` | -- | 422 if still assigned to a role |
+
+---
+
+## Categories (`/api/v1/categories`)
 
 | Method | Path | Access | Notes |
 |---|---|---|---|
@@ -146,7 +154,9 @@ interface CategoryResponse { id: number; category_name: string; created_at: stri
                              products: ProductResponse[] }
 ```
 
-### Products
+---
+
+## Products (`/api/v1/products`)
 
 | Method | Path | Access | Notes |
 |---|---|---|---|
@@ -164,7 +174,9 @@ interface ProductResponse { id: number; product_name: string; unit_price: number
                             category_id: number; category_name: string }
 ```
 
-### Customers
+---
+
+## Customers (`/api/v1/customers`)
 
 | Method | Path | Access | Notes |
 |---|---|---|---|
@@ -183,7 +195,9 @@ interface CustomerResponse { id: number; first_name: string; last_name: string; 
                              email: string; address: string; products: ProductResponse[] }
 ```
 
-### Orders
+---
+
+## Orders (`/api/v1/orders`)
 
 | Method | Path | Access | Notes |
 |---|---|---|---|
@@ -224,8 +238,8 @@ interface OrderResponse { id: number; customer: CustomerResponse; product: Produ
 | Field | Rule |
 |---|---|
 | `email` | Required, valid email format |
+| `username` | Required, 3-50 characters |
 | `password`, `new_password` | Required, at least 8 characters |
-| `first_name`, `last_name` | Required (not blank) |
 | `token` (reset password) | Required |
 | `role_name` | Required (not blank) |
 | `resource`, `action` | Required (not blank) |
@@ -234,3 +248,4 @@ interface OrderResponse { id: number; customer: CustomerResponse; product: Produ
 | `category_id`, `customer_id`, `product_id` | Required |
 | `telephone` | Required, matches `^\+?[0-9()\-\s]{7,20}$` |
 | `quantity` | Required, integer, greater than 0 |
+| `first_name`, `last_name` (customer) | Required (not blank) |

@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { Permissions } from './permissions';
 import { environment } from '../../../environments/environment';
 
-const BASE = `${environment.identityApiUrl}/permissions`;
+const BASE = `${environment.apiUrl}/permissions`;
 
 const permStub = { id: 1, resource: 'PRODUCT', action: 'READ' };
 
@@ -31,11 +31,13 @@ describe('Permissions', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getPermissions returns array from data field', async () => {
+  it('getPermissions calls GET /permissions?size=1000 and returns content array', async () => {
+    const page = { content: [permStub], page: 0, size: 1000, totalElements: 1, totalPages: 1 };
     const promise = firstValueFrom(service.getPermissions());
-    const req = httpCtrl.expectOne(BASE);
+    // The paginated endpoint receives size=1000 as a query parameter
+    const req = httpCtrl.expectOne(`${BASE}?size=1000`);
     expect(req.request.method).toBe('GET');
-    req.flush({ success: true, message: '', data: [permStub], timestamp: '' });
+    req.flush({ success: true, message: '', data: page, timestamp: '' });
     const result = await promise;
     expect(result).toEqual([permStub]);
   });

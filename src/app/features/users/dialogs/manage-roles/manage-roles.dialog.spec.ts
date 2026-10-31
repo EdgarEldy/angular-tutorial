@@ -11,15 +11,15 @@ import { AppError } from '../../../../core/http/app-error.model';
 
 const roleStub = { id: 10, role_name: 'ADMIN', permissions: [] };
 const userStub = {
-  id: 1, first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com',
+  id: 1, username: 'jane', email: 'jane@example.com',
   enabled: true, account_locked: false, roles: [],
 };
 const userWithRole = { ...userStub, roles: [roleStub] };
 
 const usersMock = {
   getUser: () => of(userStub),
-  addRole: () => of(userWithRole),
-  removeRole: () => of(userStub),
+  // assignRoles replaces the old addRole/removeRole pair
+  assignRoles: () => of(userWithRole),
 };
 
 const rolesMock = {
@@ -60,23 +60,27 @@ describe('ManageRolesDialog', () => {
     expect(component['user']().email).toBe('jane@example.com');
   });
 
-  it('addRole updates user signal from server response', async () => {
+  it('addRole calls assignRoles with current roles + selected id', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
+    const spy = vi.spyOn(usersMock, 'assignRoles').mockReturnValueOnce(of(userWithRole));
     component['selectedRoleId'] = roleStub.id;
     (component as unknown as { addRole: () => void }).addRole();
     await fixture.whenStable();
 
+    expect(spy).toHaveBeenCalledWith(userStub.id, [roleStub.id]);
     expect(component['user']().roles).toEqual([roleStub]);
   });
 
-  it('removeRole updates user signal from server response', async () => {
+  it('removeRole calls assignRoles with current roles minus removed id', async () => {
     component['user'].set(userWithRole);
+    const spy = vi.spyOn(usersMock, 'assignRoles').mockReturnValueOnce(of(userStub));
     (component as unknown as { removeRole: (r: typeof roleStub) => void })
       .removeRole(roleStub);
     await fixture.whenStable();
 
+    expect(spy).toHaveBeenCalledWith(userStub.id, []);
     expect(component['user']().roles).toEqual([]);
   });
 
@@ -86,9 +90,9 @@ describe('ManageRolesDialog', () => {
     expect(dialogRefMock.close).toHaveBeenCalledWith(userWithRole);
   });
 
-  it('shows error notification when addRole fails', async () => {
+  it('shows error notification when assignRoles fails on add', async () => {
     const error: AppError = { kind: 'SERVER', status: 500, message: 'Error' };
-    vi.spyOn(usersMock, 'addRole').mockReturnValueOnce(throwError(() => error));
+    vi.spyOn(usersMock, 'assignRoles').mockReturnValueOnce(throwError(() => error));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -99,4 +103,3 @@ describe('ManageRolesDialog', () => {
     expect(component['saving']()).toBe(false);
   });
 });
-

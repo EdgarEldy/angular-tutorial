@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { Roles } from './roles';
 import { environment } from '../../../environments/environment';
 
-const BASE = `${environment.identityApiUrl}/roles`;
+const BASE = `${environment.apiUrl}/roles`;
 
 const roleStub = { id: 1, role_name: 'ADMIN', permissions: [] };
 const permStub = { id: 2, resource: 'PRODUCT', action: 'READ' };
@@ -33,11 +33,13 @@ describe('Roles', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getRoles returns array', async () => {
+  it('getRoles calls GET /roles?size=1000 and returns content array', async () => {
+    const page = { content: [roleStub], page: 0, size: 1000, totalElements: 1, totalPages: 1 };
     const promise = firstValueFrom(service.getRoles());
-    const req = httpCtrl.expectOne(BASE);
+    // The paginated endpoint receives size=1000 as a query parameter
+    const req = httpCtrl.expectOne(`${BASE}?size=1000`);
     expect(req.request.method).toBe('GET');
-    req.flush({ success: true, message: '', data: [roleStub], timestamp: '' });
+    req.flush({ success: true, message: '', data: page, timestamp: '' });
     const result = await promise;
     expect(result).toEqual([roleStub]);
   });
