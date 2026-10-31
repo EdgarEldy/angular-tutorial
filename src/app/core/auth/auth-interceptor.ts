@@ -3,22 +3,29 @@ import { environment } from '../../../environments/environment';
 import { decodeJwt, isTokenValid } from './jwt';
 
 /**
- * Attaches the JWT access token to every outgoing request that targets
- * the identity API or the business API.
+ * Attaches the JWT access token to outgoing requests that target the backend API.
  *
- * Reads the token directly from localStorage (rather than injecting
- * AuthService) to avoid a circular dependency: AuthService depends on
- * HttpClient at construction time, so injecting AuthService here would
- * create a cycle. Reading localStorage is intentionally bypassed for
- * requests that do not target our own APIs (e.g. CDNs or third-party calls).
+ * Reads the token from localStorage under the key 'access_token'. If no token
+ * is present, or the request does not target environment.apiUrl, the request is
+ * forwarded unmodified. Public endpoints (login, register, forgot-password) are
+ * still reachable because they live under apiUrl but the server does not require
+ * a token for them.
  *
- * Token expiry is checked before attaching: if the token has already
- * expired there is no point adding it -- the server would respond with 401
- * anyway, but an expired token in the header can confuse some proxies.
- * The errorInterceptor downstream will catch the 401 and trigger the
- * standard UNAUTHENTICATED flow (clear session, redirect to /login).
+ * Token expiry is checked before attaching: if the token has already expired
+ * there is no point adding it -- the server would respond with 401 anyway, but an
+ * expired token in the header can confuse some proxies. The errorInterceptor
+ * downstream will catch the 401 and trigger the standard UNAUTHENTICATED flow
+ * (clear session, redirect to /login).
  *
- * The Authorization header follows the Bearer scheme defined in RFC 6750.
+ * Restricting the header to apiUrl prevents the token from leaking to CDNs or
+ * third-party services that an interceptor chain might reach.
+ *
+ * AuthService is intentionally not injected here to avoid a circular dependency:
+ * AuthService depends on HttpClient, so injecting it inside an HttpInterceptorFn
+ * would create a cycle at bootstrap time. Reading localStorage directly is the
+ * standard workaround for this pattern.
+ *
+ * The Authorization header follows the Bearer scheme defined by RFC 6750.
  *
  * @param req - the outgoing HTTP request
  * @param next - the next handler in the interceptor chain
@@ -31,12 +38,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  // Only attach to requests that target our own backend APIs
-  const isApiRequest =
-    req.url.startsWith(environment.identityApiUrl) ||
-    req.url.startsWith(environment.apiUrl);
-
-  if (!isApiRequest) {
+  // Only attach to requests that target our own backend API
+  if (!req.url.startsWith(environment.apiUrl)) {
     return next(req);
   }
 

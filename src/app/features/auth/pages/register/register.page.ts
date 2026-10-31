@@ -41,7 +41,7 @@ export const passwordsMatch: ValidatorFn = (
 };
 
 /**
- * Registration page: collects name, email, and password, then calls
+ * Registration page: collects username, email, and password, then calls
  * Auth.register(). On success it shows a confirmation message instead of
  * navigating, because the account must be activated via email before login.
  *
@@ -72,8 +72,7 @@ export class RegisterPage {
 
   protected readonly form = this.fb.nonNullable.group(
     {
-      first_name: ['', Validators.required],
-      last_name: ['', Validators.required],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required, Validators.minLength(8)]],
@@ -95,9 +94,9 @@ export class RegisterPage {
     this.loading.set(true);
     this.serverError.set(null);
 
-    const { first_name, last_name, email, password } = this.form.getRawValue();
+    const { username, email, password } = this.form.getRawValue();
 
-    this.auth.register({ first_name, last_name, email, password }).subscribe({
+    this.auth.register({ username, email, password }).subscribe({
       next: () => {
         this.loading.set(false);
         this.successMessage.set(

@@ -10,7 +10,7 @@ import { vi } from 'vitest';
 import { UpdateProfileDialog } from './update-profile.dialog';
 import { environment } from '../../../../../environments/environment';
 
-const dialogDataStub = { userId: 1, firstName: 'Jane', lastName: 'Doe' };
+const dialogDataStub = { userId: 1, username: 'jane', email: 'jane@example.com' };
 
 describe('UpdateProfileDialog', () => {
   let fixture: ComponentFixture<UpdateProfileDialog>;
@@ -47,24 +47,24 @@ describe('UpdateProfileDialog', () => {
 
   it('pre-populates form with dialog data', () => {
     const inputs = fixture.debugElement.queryAll(By.css('input'));
-    expect(inputs[0].nativeElement.value).toBe('Jane');
-    expect(inputs[1].nativeElement.value).toBe('Doe');
+    expect(inputs[0].nativeElement.value).toBe('jane');
+    expect(inputs[1].nativeElement.value).toBe('jane@example.com');
   });
 
   it('closes the dialog with updated user on success', async () => {
     const updatedUser = {
-      id: 1, first_name: 'Janet', last_name: 'Doe', email: 'jane@example.com',
+      id: 1, username: 'janet', email: 'jane@example.com',
       enabled: true, account_locked: false, roles: [],
     };
     const inputs = fixture.debugElement.queryAll(By.css('input'));
-    inputs[0].nativeElement.value = 'Janet';
+    inputs[0].nativeElement.value = 'janet';
     inputs[0].nativeElement.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
     fixture.debugElement.query(By.css('button[color="primary"]')).nativeElement.click();
     fixture.detectChanges();
 
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/users/1`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/users/1`);
     req.flush({ success: true, message: '', data: updatedUser, timestamp: '' });
     fixture.detectChanges();
 
@@ -75,9 +75,9 @@ describe('UpdateProfileDialog', () => {
     fixture.debugElement.query(By.css('button[color="primary"]')).nativeElement.click();
     fixture.detectChanges();
 
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/users/1`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/users/1`);
     req.flush(
-      { success: false, message: 'Validation error', data: { fieldErrors: { first_name: 'Too short' } }, timestamp: '' },
+      { success: false, message: 'Validation error', data: { fieldErrors: { username: 'Already taken' } }, timestamp: '' },
       { status: 400, statusText: 'Bad Request' },
     );
     fixture.detectChanges();

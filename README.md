@@ -410,15 +410,15 @@ Tests must not require the real backends to be running. Test files and test name
 
 - [x] Create the project with Angular CLI **21** in the current repository root (standalone, SCSS, routing, no SSR, existing git repository kept): `npx @angular/cli@21 new angular-tutorial --directory . --style=scss --ssr=false --skip-git`. `ng new` generates its own `README.md` and would replace this one: keep a copy of this file and restore it right after the generation. Confirm with `ng version` that the project is on Angular 21, and keep strict TypeScript and strict templates enabled.
 - [x] Install the UI and tooling with `ng add @angular/material` and `ng add angular-eslint`; add Prettier. `npm run lint` must pass.
-- [x] Environments: run `ng generate environments`, then add `identityApiUrl` (`/api`) and `apiUrl` (`/api/v1`).
-- [x] `proxy.conf.json`: `/api/v1` to the business API first, then `/api` to the identity API; wire it in `angular.json` for `ng serve`.
+- [x] Environments: run `ng generate environments`, then add `apiUrl` (`/api/v1`). A single backend serves all resources (auth, users, roles, permissions, categories, products, customers, orders).
+- [x] `proxy.conf.json`: `/api/v1` forwarded to the backend; wire it in `angular.json` for `ng serve`.
 - [x] Generic API models (`ApiResponse`, `PageResponse`, `ProblemDetail`) in `shared/models`, generated with `ng generate interface ... --type=model`.
 - [x] `authInterceptor` and `errorInterceptor` (`ng generate interceptor`, functional), `error-mapper.ts` and `AppError`, registered in `app.config.ts` with `provideHttpClient(withInterceptors([...]))`, with unit tests for every status mapping
 - [x] App shell: Material toolbar + sidenav + `router-outlet`, navigation entries for each domain (entries for not-yet-implemented features are added by their own branch), not-found page and a "not allowed" page, global loading/error primitives in `shared/ui`, shared `confirm-dialog`
 - [x] `NotificationService` (snackbar) used by all features for success and error messages
 - [x] Pagination helper shared by every list: maps Angular Material's `MatPaginator` (`pageIndex`, `pageSize`, `sort`) to the backend's `page`, `size`, `sort` parameters
 - [x] `MoneyPipe` in `shared/pipes` (`ng generate pipe shared/pipes/money`): formats a number as a locale-aware currency string; used in every screen that displays `unit_price` or `total`
-- [x] `Dockerfile` (multi-stage: Node build, then nginx serving `dist` and proxying `/api/v1` to the business API and `/api` to the identity API), `nginx.conf`, and a `docker-compose.yml` that runs the frontend and expects both backends reachable (either as services built from the backend repositories or via `host.docker.internal`; document the chosen option)
+- [x] `Dockerfile` (multi-stage: Node build, then nginx serving `dist` and proxying `/api/v1` to the backend), `nginx.conf`, and a `docker-compose.yml` that runs the frontend and expects the backend reachable (either as a service built from the backend repository or via `host.docker.internal`; document the chosen option)
 - [x] `.github/workflows/ci.yml`: install, lint, test, build on every push and pull request
 - [x] Replace this README's "How to follow" commands if the real commands differ
 
@@ -431,16 +431,16 @@ Depends on `feature/core-architecture`.
 | Route                          | Operation                               | Behavior                                                                                                   |
 |--------------------------------|-----------------------------------------|------------------------------------------------------------------------------------------------------------|
 | `/login`                       | `POST /auth/login`                      | Email + password; on success store the token, load `/auth/me`, go to the return URL or `/`. Links to register and forgot password. |
-| `/register`                    | `POST /auth/register`                   | First name, last name, email, password (+ confirmation, client-side match check); on success show "check your email to activate your account". |
-| `/activate-account?token=`     | `GET /auth/activate-account?token=`     | Reads the `token` query parameter, calls the endpoint, shows success (link to login) or the backend error. |
+| `/register`                    | `POST /auth/register`                   | Username, email, password (+ confirmation, client-side match check); on success show "check your email to activate your account". |
+| `/activate-account?token=`     | `GET /auth/activate?token=`             | Reads the `token` query parameter, calls the endpoint, shows success (link to login) or the backend error. |
 | `/forgot-password`             | `POST /auth/forgot-password`            | Email only. Always show the same neutral confirmation message, whatever the backend answers about the email. |
 | `/reset-password?token=`       | `POST /auth/reset-password`             | New password + confirmation (client-side match check); token from the query string; on success go to `/login`. |
-| `/profile` (authenticated)     | `GET /auth/me`, `PUT /users/{id}`       | Shows the account (name, email, status), the user's **roles and permissions** (from the token claims), and an edit dialog for first and last name on the user's own id. |
+| `/profile` (authenticated)     | `GET /auth/me`, `PUT /users/{id}`       | Shows the account (username, email, status), the user's **roles and permissions** (from the token claims), and an edit dialog for username and email on the user's own id. |
 
 ### Tasks
 
 - [x] `AuthService` (session signals, token storage, `register`, `login`, `logout`, `activateAccount`, `forgotPassword`, `resetPassword`, `loadCurrentUser`, `hasRole`, `hasPermission`), `jwt.ts`, the three guards (`authGuard`, `roleGuard`, `permissionGuard`) and the `appHasPermission` / `appHasRole` directives, with tests
-- [x] The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, required names)
+- [x] The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, username at least 3 characters)
 - [x] A `401` on login (wrong credentials, locked or disabled account) shows the backend message on the form, without a redirect loop
 - [x] On a `400` returned by `register` or `reset-password`, map `fieldErrors` onto the form fields and show an invalid-token message on the page
 - [x] Return-URL handling after a forced redirect to `/login`
@@ -455,8 +455,8 @@ Depends on `feature/auth`. Everything here is reserved to the `ADMIN` role: rout
 
 | Route               | Operations                                                                                       | Screens                                                                                                                              |
 |---------------------|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `/admin/users`      | `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `PATCH /users/{id}/lock`, `PATCH /users/{id}/unlock`, `DELETE /users/{id}` | Paginated table (name, email, enabled, locked), edit dialog (first and last name), lock/unlock and delete with confirmation. |
-| User roles          | `GET /users/{id}`, `GET /roles`, `POST` and `DELETE /users/{userId}/roles/{roleId}`              | A "Manage roles" dialog opened from the user row: the user's roles as removable chips (with their permissions on hover or in an expandable list) and an "add role" select listing the roles not yet assigned. |
+| `/admin/users`      | `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `PATCH /users/{id}/lock`, `PATCH /users/{id}/unlock`, `DELETE /users/{id}` | Paginated table (username, email, enabled, locked), edit dialog (username and email), lock/unlock and delete with confirmation. |
+| User roles          | `GET /users/{id}`, `GET /roles`, `PUT /users/{id}/roles` (assign all at once)                    | A "Manage roles" dialog opened from the user row: the user's current roles as chips and a multi-select to reassign them all in one PUT call. |
 | `/admin/roles`      | `GET /roles`, `POST /roles`, `PUT /roles/{id}`, `DELETE /roles/{id}`                             | Table of roles with their permissions, create/edit dialog (`role_name`), delete with confirmation.                                   |
 | Role permissions    | `GET /permissions`, `POST` and `DELETE /roles/{roleId}/permissions/{permissionId}`               | A "Manage permissions" dialog opened from the role row: assigned permissions as removable chips and an "add permission" select.      |
 | `/admin/permissions`| `GET /permissions`, `POST /permissions`, `DELETE /permissions/{id}`                              | Table (`resource`, `action`, and the combined `RESOURCE:ACTION`), create dialog, delete with confirmation.                           |
