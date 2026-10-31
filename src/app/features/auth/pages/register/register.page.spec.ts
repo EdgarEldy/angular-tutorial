@@ -61,14 +61,13 @@ describe('RegisterPage', () => {
   });
 
   it('shows success message and hides form on 201', () => {
+    // Fields order: username, email, password, confirmPassword
     const inputs = fixture.debugElement.queryAll(By.css('input'));
-    const values = ['Jane', 'Doe', 'jane@example.com', 'password123', 'password123'];
-    const events = ['given-name', 'family-name', 'email', 'new-password', 'new-password'];
+    const values = ['alice', 'alice@example.com', 'password123', 'password123'];
 
     inputs.forEach((el, i) => {
       el.nativeElement.value = values[i];
       el.nativeElement.dispatchEvent(new Event('input'));
-      void events[i];
     });
     fixture.detectChanges();
 
@@ -76,11 +75,11 @@ describe('RegisterPage', () => {
     btn.nativeElement.click();
     fixture.detectChanges();
 
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/register`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/register`);
     req.flush({
       success: true,
       message: 'Registered',
-      data: { id: 1, first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com', enabled: false, account_locked: false, roles: [] },
+      data: { id: 1, username: 'alice', email: 'alice@example.com', enabled: false, account_locked: false, roles: [] },
       timestamp: '',
     });
     fixture.detectChanges();

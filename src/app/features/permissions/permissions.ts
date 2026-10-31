@@ -4,34 +4,41 @@ import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../shared/models/api-response.model';
+import { PageResponse } from '../../shared/models/page-response.model';
 import { PermissionResponse } from '../auth/models/user-response.model';
 import { PermissionRequest } from './models/permission-request.model';
 
 /**
- * Service for the /api/permissions resource (Identity API).
+ * Service for the /api/v1/permissions resource.
  *
  * All endpoints require the ADMIN role; the route guard enforces this before
  * the page loads. The service itself adds no UI logic -- it is a thin HTTP
  * wrapper that maps ApiResponse<T> down to its data field.
  *
- * Permissions are returned as a plain array (not paginated) because the total
- * number of permissions in a typical system is small enough to load in one
- * request and display in a flat table.
+ * getPermissions() uses the paginated endpoint with size=1000 and extracts
+ * the content array. The permission count in a typical system is small
+ * enough that a single large page is equivalent to a flat list.
  */
 @Injectable({ providedIn: 'root' })
 export class Permissions {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.identityApiUrl}/permissions`;
+  private readonly base = `${environment.apiUrl}/permissions`;
 
   /**
    * Returns all permissions defined in the system.
    *
+   * The backend endpoint is paginated; size=1000 fetches all permissions in
+   * one call. The content array is extracted so callers receive a plain array.
+   *
    * @returns Observable of PermissionResponse array
    */
   getPermissions(): Observable<PermissionResponse[]> {
+    // HttpParams is immutable; each set() returns a new instance
     return this.http
-      .get<ApiResponse<PermissionResponse[]>>(this.base)
-      .pipe(map((res) => res.data));
+      .get<ApiResponse<PageResponse<PermissionResponse>>>(this.base, {
+        params: { size: 1000 },
+      })
+      .pipe(map((res) => res.data.content));
   }
 
   /**

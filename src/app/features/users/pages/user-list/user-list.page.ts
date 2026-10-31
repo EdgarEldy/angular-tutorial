@@ -30,8 +30,8 @@ import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/con
 /**
  * Administration page for managing user accounts.
  *
- * Shows a paginated table of users (name, email, status flags). Each row
- * offers edit (name), manage roles, lock/unlock, and delete actions.
+ * Shows a paginated table of users (username, email, status flags). Each row
+ * offers edit (username/email), manage roles, lock/unlock, and delete actions.
  *
  * Own-account protection: an admin cannot lock or delete their own account.
  * The lock/delete buttons are disabled on the row whose email matches the
@@ -74,7 +74,7 @@ export class UserListPage implements OnInit {
   protected readonly pageSize = signal(10);
 
   protected readonly displayedColumns = [
-    'name', 'email', 'status', 'actions',
+    'username', 'email', 'status', 'actions',
   ];
 
   /** @inheritdoc */
@@ -164,11 +164,10 @@ export class UserListPage implements OnInit {
    */
   protected lockUser(user: UserResponse): void {
     this.usersService.lockUser(user.id).subscribe({
-      next: () => {
+      // Update the row from the server-authoritative UserResponse
+      next: (updated) => {
         this.users.update((list) =>
-          list.map((u) =>
-            u.id === user.id ? { ...u, account_locked: true } : u,
-          ),
+          list.map((u) => (u.id === updated.id ? updated : u)),
         );
         this.notification.success('Account locked.');
       },
@@ -179,17 +178,16 @@ export class UserListPage implements OnInit {
   }
 
   /**
-   * Unlocks a user account.
+   * Unlocks a previously-locked user account.
    *
    * @param user - user to unlock
    */
   protected unlockUser(user: UserResponse): void {
     this.usersService.unlockUser(user.id).subscribe({
-      next: () => {
+      // Update the row from the server-authoritative UserResponse
+      next: (updated) => {
         this.users.update((list) =>
-          list.map((u) =>
-            u.id === user.id ? { ...u, account_locked: false } : u,
-          ),
+          list.map((u) => (u.id === updated.id ? updated : u)),
         );
         this.notification.success('Account unlocked.');
       },
@@ -210,7 +208,7 @@ export class UserListPage implements OnInit {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Delete user',
-        message: `Delete ${user.first_name} ${user.last_name} (${user.email})? This cannot be undone.`,
+        message: `Delete ${user.username} (${user.email})? This cannot be undone.`,
       },
     });
 

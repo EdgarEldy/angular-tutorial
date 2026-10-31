@@ -61,7 +61,7 @@ describe('LoginPage', () => {
     button.nativeElement.click();
     fixture.detectChanges();
 
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/login`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/login`);
     req.flush(
       { success: false, message: 'Invalid credentials', data: null, timestamp: '' },
       { status: 401, statusText: 'Unauthorized' },

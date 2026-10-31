@@ -9,12 +9,12 @@ import { Users } from '../../users';
 import { AppError } from '../../../../core/http/app-error.model';
 
 const userStub = {
-  id: 1, first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com',
+  id: 1, username: 'jane', email: 'jane@example.com',
   enabled: true, account_locked: false, roles: [],
 };
 
 const usersMock = {
-  updateUser: () => of({ ...userStub, first_name: 'Janet' }),
+  updateUser: () => of({ ...userStub, username: 'janet' }),
 };
 
 const dialogRefMock = { close: vi.fn() };
@@ -45,17 +45,17 @@ describe('EditUserDialog', () => {
     expect(component).toBeTruthy();
   });
 
-  it('pre-fills form with existing user name', () => {
-    expect(component['form'].value.first_name).toBe('Jane');
-    expect(component['form'].value.last_name).toBe('Doe');
+  it('pre-fills form with existing username and email', () => {
+    expect(component['form'].value.username).toBe('jane');
+    expect(component['form'].value.email).toBe('jane@example.com');
   });
 
   it('closes dialog with updated user on success', async () => {
-    component['form'].setValue({ first_name: 'Janet', last_name: 'Doe' });
+    component['form'].setValue({ username: 'janet', email: 'jane@example.com' });
     (component as unknown as { submit: () => void }).submit();
     await fixture.whenStable();
     expect(dialogRefMock.close).toHaveBeenCalledWith(
-      expect.objectContaining({ first_name: 'Janet' }),
+      expect.objectContaining({ username: 'janet' }),
     );
   });
 
@@ -64,14 +64,13 @@ describe('EditUserDialog', () => {
       kind: 'VALIDATION',
       status: 400,
       message: 'Validation failed',
-      fieldErrors: { first_name: 'Too long' },
+      fieldErrors: { username: 'Too long' },
     };
     vi.spyOn(usersMock, 'updateUser').mockReturnValueOnce(throwError(() => error));
 
     (component as unknown as { submit: () => void }).submit();
     await fixture.whenStable();
 
-    expect(component['form'].get('first_name')?.hasError('serverError')).toBe(true);
+    expect(component['form'].get('username')?.hasError('serverError')).toBe(true);
   });
 });
-
