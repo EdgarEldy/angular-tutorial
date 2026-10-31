@@ -7,7 +7,7 @@
  * avoid sending a known-expired token.
  */
 export interface JwtClaims {
-  /** Subject: the user's email address. */
+  /** Subject: the user's username (not email). Used as the login identifier. */
   sub: string;
   /** Role names assigned to the user (e.g. ['ADMIN', 'USER']). */
   roles: string[];

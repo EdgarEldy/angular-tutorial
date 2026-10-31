@@ -8,21 +8,31 @@ import { PageResponse } from '../../shared/models/page-response.model';
 import { UserResponse } from '../auth/models/user-response.model';
 import { UpdateProfileRequest } from '../auth/models/update-profile-request.model';
 
+/** Payload for the bulk-role assignment endpoint. */
+export interface AssignRolesRequest {
+  /** Complete set of role IDs to assign; replaces the current role set. */
+  role_ids: number[];
+}
+
 /**
- * Service for the /api/users resource (Identity API).
+ * Service for the /api/v1/users resource.
  *
- * All endpoints require the ADMIN role except GET /api/users/{id}, which is
+ * All endpoints require the ADMIN role except GET /api/v1/users/{id}, which is
  * also accessible to the account owner (handled by the backend; the frontend
  * does not need to distinguish these cases here).
  *
  * The user list returns UserResponse objects with an empty roles array; the
  * detail endpoint (GET /users/{id}) populates roles and is used by the
  * ManageRolesDialog to load the current role assignments for a user.
+ *
+ * Role assignment uses a single PUT /users/{id}/roles endpoint that replaces
+ * the user's entire role set atomically, avoiding the ordering issues of
+ * individual add/remove calls.
  */
 @Injectable({ providedIn: 'root' })
 export class Users {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.identityApiUrl}/users`;
+  private readonly base = `${environment.apiUrl}/users`;
 
   /**
    * Returns a paginated list of users.
@@ -57,10 +67,10 @@ export class Users {
   }
 
   /**
-   * Updates a user's first and last name.
+   * Updates a user's username and/or email.
    *
    * @param id - user id
-   * @param body - first_name and last_name
+   * @param body - optional new username and/or email
    * @returns Observable of updated UserResponse
    */
   updateUser(id: number, body: UpdateProfileRequest): Observable<UserResponse> {
@@ -90,54 +100,41 @@ export class Users {
    * The UI disables the lock button for the current user's own row.
    *
    * @param id - user id
-   * @returns Observable<void>
+   * @returns Observable of the updated UserResponse reflecting the locked state
    */
-  lockUser(id: number): Observable<void> {
+  lockUser(id: number): Observable<UserResponse> {
     return this.http
-      .patch<ApiResponse<void>>(`${this.base}/${id}/lock`, {})
-      .pipe(map(() => undefined));
+      .patch<ApiResponse<UserResponse>>(`${this.base}/${id}/lock`, {})
+      .pipe(map((res) => res.data));
   }
 
   /**
    * Unlocks a previously-locked user account.
    *
    * @param id - user id
-   * @returns Observable<void>
+   * @returns Observable of the updated UserResponse reflecting the unlocked state
    */
-  unlockUser(id: number): Observable<void> {
+  unlockUser(id: number): Observable<UserResponse> {
     return this.http
-      .patch<ApiResponse<void>>(`${this.base}/${id}/unlock`, {})
-      .pipe(map(() => undefined));
-  }
-
-  /**
-   * Assigns a role to a user.
-   *
-   * @param userId - user id
-   * @param roleId - role id to assign
-   * @returns Observable of updated UserResponse (server-authoritative state)
-   */
-  addRole(userId: number, roleId: number): Observable<UserResponse> {
-    return this.http
-      .post<ApiResponse<UserResponse>>(
-        `${this.base}/${userId}/roles/${roleId}`,
-        {},
-      )
+      .patch<ApiResponse<UserResponse>>(`${this.base}/${id}/unlock`, {})
       .pipe(map((res) => res.data));
   }
 
   /**
-   * Removes a role from a user.
+   * Replaces the user's entire role set with the given role IDs.
+   *
+   * A single PUT replaces all roles atomically; this avoids ordering issues
+   * that arise when adding and removing roles one at a time (e.g., removing
+   * the last role could strip access before the new one is added).
    *
    * @param userId - user id
-   * @param roleId - role id to remove
-   * @returns Observable of updated UserResponse (server-authoritative state)
+   * @param roleIds - complete new role ID set (may be empty to remove all roles)
+   * @returns Observable of the updated UserResponse reflecting the new roles
    */
-  removeRole(userId: number, roleId: number): Observable<UserResponse> {
+  assignRoles(userId: number, roleIds: number[]): Observable<UserResponse> {
+    const body: AssignRolesRequest = { role_ids: roleIds };
     return this.http
-      .delete<ApiResponse<UserResponse>>(
-        `${this.base}/${userId}/roles/${roleId}`,
-      )
+      .put<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles`, body)
       .pipe(map((res) => res.data));
   }
 }

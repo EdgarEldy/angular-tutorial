@@ -38,9 +38,10 @@ export interface ManageRolesDialogData {
  * endpoint returns users with empty roles arrays). It also loads all roles
  * so the add-select can show unassigned ones.
  *
- * Removing a role chip calls DELETE /users/{userId}/roles/{roleId} and
- * refreshes the user signal from the UserResponse the backend returns.
- * Adding a role calls POST /users/{userId}/roles/{roleId} and does the same.
+ * Both addRole() and removeRole() compute the new desired role ID set and
+ * call PUT /users/{userId}/roles with that set via assignRoles(). The backend
+ * replaces the user's roles atomically, avoiding ordering issues that arise
+ * when adding and removing one at a time.
  *
  * Each role chip has an expandable section showing its permissions, so the
  * admin can see what a role grants before assigning or removing it.
@@ -112,14 +113,20 @@ export class ManageRolesDialog implements OnInit {
   }
 
   /**
-   * Assigns the selected role and refreshes the user signal.
+   * Adds the selected role to the user's current role set.
+   *
+   * Builds the new role ID list by appending selectedRoleId to the current
+   * assigned set, then calls assignRoles() to replace them atomically.
    */
   protected addRole(): void {
     if (this.selectedRoleId === null) return;
 
     this.saving.set(true);
 
-    this.usersService.addRole(this.user().id, this.selectedRoleId).subscribe({
+    // Build new role ID set: current roles + selected role
+    const newIds = [...this.user().roles.map((r) => r.id), this.selectedRoleId];
+
+    this.usersService.assignRoles(this.user().id, newIds).subscribe({
       next: (updated) => {
         this.user.set(updated);
         this.selectedRoleId = null;
@@ -133,14 +140,20 @@ export class ManageRolesDialog implements OnInit {
   }
 
   /**
-   * Removes a role and refreshes the user signal.
+   * Removes a role from the user's current role set.
    *
-   * @param role - the role chip that was removed
+   * Builds the new role ID list by excluding the removed role's id, then
+   * calls assignRoles() to replace the set atomically.
+   *
+   * @param role - the role to remove
    */
   protected removeRole(role: RoleResponse): void {
     this.saving.set(true);
 
-    this.usersService.removeRole(this.user().id, role.id).subscribe({
+    // Build new role ID set: current roles minus the removed role
+    const newIds = this.user().roles.filter((r) => r.id !== role.id).map((r) => r.id);
+
+    this.usersService.assignRoles(this.user().id, newIds).subscribe({
       next: (updated) => {
         this.user.set(updated);
         this.saving.set(false);
