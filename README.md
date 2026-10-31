@@ -431,16 +431,16 @@ Depends on `feature/core-architecture`.
 | Route                          | Operation                               | Behavior                                                                                                   |
 |--------------------------------|-----------------------------------------|------------------------------------------------------------------------------------------------------------|
 | `/login`                       | `POST /auth/login`                      | Email + password; on success store the token, load `/auth/me`, go to the return URL or `/`. Links to register and forgot password. |
-| `/register`                    | `POST /auth/register`                   | First name, last name, email, password (+ confirmation, client-side match check); on success show "check your email to activate your account". |
-| `/activate-account?token=`     | `GET /auth/activate-account?token=`     | Reads the `token` query parameter, calls the endpoint, shows success (link to login) or the backend error. |
+| `/register`                    | `POST /auth/register`                   | Username, email, password (+ confirmation, client-side match check); on success show "check your email to activate your account". |
+| `/activate-account?token=`     | `GET /auth/activate?token=`             | Reads the `token` query parameter, calls the endpoint, shows success (link to login) or the backend error. |
 | `/forgot-password`             | `POST /auth/forgot-password`            | Email only. Always show the same neutral confirmation message, whatever the backend answers about the email. |
 | `/reset-password?token=`       | `POST /auth/reset-password`             | New password + confirmation (client-side match check); token from the query string; on success go to `/login`. |
-| `/profile` (authenticated)     | `GET /auth/me`, `PUT /users/{id}`       | Shows the account (name, email, status), the user's **roles and permissions** (from the token claims), and an edit dialog for first and last name on the user's own id. |
+| `/profile` (authenticated)     | `GET /auth/me`, `PUT /users/{id}`       | Shows the account (username, email, status), the user's **roles and permissions** (from the token claims), and an edit dialog for username and email on the user's own id. |
 
 ### Tasks
 
 - [x] `AuthService` (session signals, token storage, `register`, `login`, `logout`, `activateAccount`, `forgotPassword`, `resetPassword`, `loadCurrentUser`, `hasRole`, `hasPermission`), `jwt.ts`, the three guards (`authGuard`, `roleGuard`, `permissionGuard`) and the `appHasPermission` / `appHasRole` directives, with tests
-- [x] The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, required names)
+- [x] The six pages above, with typed reactive forms and field-level validation matching the backend rules (valid email, password at least 8 characters, username at least 3 characters)
 - [x] A `401` on login (wrong credentials, locked or disabled account) shows the backend message on the form, without a redirect loop
 - [x] On a `400` returned by `register` or `reset-password`, map `fieldErrors` onto the form fields and show an invalid-token message on the page
 - [x] Return-URL handling after a forced redirect to `/login`
@@ -455,8 +455,8 @@ Depends on `feature/auth`. Everything here is reserved to the `ADMIN` role: rout
 
 | Route               | Operations                                                                                       | Screens                                                                                                                              |
 |---------------------|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `/admin/users`      | `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `PATCH /users/{id}/lock`, `PATCH /users/{id}/unlock`, `DELETE /users/{id}` | Paginated table (name, email, enabled, locked), edit dialog (first and last name), lock/unlock and delete with confirmation. |
-| User roles          | `GET /users/{id}`, `GET /roles`, `POST` and `DELETE /users/{userId}/roles/{roleId}`              | A "Manage roles" dialog opened from the user row: the user's roles as removable chips (with their permissions on hover or in an expandable list) and an "add role" select listing the roles not yet assigned. |
+| `/admin/users`      | `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `PATCH /users/{id}/lock`, `PATCH /users/{id}/unlock`, `DELETE /users/{id}` | Paginated table (username, email, enabled, locked), edit dialog (username and email), lock/unlock and delete with confirmation. |
+| User roles          | `GET /users/{id}`, `GET /roles`, `PUT /users/{id}/roles` (assign all at once)                    | A "Manage roles" dialog opened from the user row: the user's current roles as chips and a multi-select to reassign them all in one PUT call. |
 | `/admin/roles`      | `GET /roles`, `POST /roles`, `PUT /roles/{id}`, `DELETE /roles/{id}`                             | Table of roles with their permissions, create/edit dialog (`role_name`), delete with confirmation.                                   |
 | Role permissions    | `GET /permissions`, `POST` and `DELETE /roles/{roleId}/permissions/{permissionId}`               | A "Manage permissions" dialog opened from the role row: assigned permissions as removable chips and an "add permission" select.      |
 | `/admin/permissions`| `GET /permissions`, `POST /permissions`, `DELETE /permissions/{id}`                              | Table (`resource`, `action`, and the combined `RESOURCE:ACTION`), create dialog, delete with confirmation.                           |
