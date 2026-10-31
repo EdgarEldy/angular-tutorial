@@ -131,26 +131,28 @@ export class ShellComponent {
   // ── Auth integration ───────────────────────────────────────────────────────
 
   /**
-   * Full display name of the authenticated user.
+   * Display name of the authenticated user.
    * Falls back to 'User' while the /auth/me call is still in-flight.
    *
-   * @returns "First Last" or 'User' when currentUser is null.
+   * @returns the username string, or 'User' when currentUser is null.
    */
   protected readonly displayName = computed(() => {
     const u = this.auth.currentUser();
-    return u ? `${u.first_name} ${u.last_name}` : 'User';
+    return u ? u.username : 'User';
   });
 
   /**
-   * Two-letter uppercase initials for the avatar circle.
+   * One or two uppercase characters for the avatar circle.
    *
-   * @returns e.g. "EE" for Edgar Eldy, or "U" when not yet loaded.
+   * Takes the first two characters of the username so the avatar always
+   * has content regardless of whether the username is one word or many.
+   *
+   * @returns e.g. "al" -> "AL", or "U" when not yet loaded.
    */
   protected readonly initials = computed(() => {
     const u = this.auth.currentUser();
-    return u
-      ? `${u.first_name[0]}${u.last_name[0]}`.toUpperCase()
-      : 'U';
+    // Slice the first two chars of the username for the avatar
+    return u ? u.username.slice(0, 2).toUpperCase() : 'U';
   });
 
   /**
