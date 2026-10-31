@@ -1,14 +1,13 @@
 /**
- * Payload sent to PUT /api/users/{id} to update the authenticated user's profile.
+ * Payload sent to PUT /api/v1/users/{id} to update the authenticated user's profile.
  *
- * Only first and last name are editable through this endpoint. Email changes
- * require a separate, verified flow not covered in this branch. Keeping the
- * request model minimal prevents accidental over-posting of fields the
- * backend does not expect.
+ * All fields are optional: the caller only sends the properties they want to
+ * change. Sending an empty object is a no-op on the server. The backend validates
+ * uniqueness of the new username and email when provided and returns 409 on conflict.
  */
 export interface UpdateProfileRequest {
-  /** Updated given name. */
-  first_name: string;
-  /** Updated family name. */
-  last_name: string;
+  /** New username; must be unique. Omit to leave unchanged. */
+  username?: string;
+  /** New email address. Omit to leave unchanged. */
+  email?: string;
 }
