@@ -11,8 +11,7 @@ import { environment } from '../../../../../environments/environment';
 
 const userStub = {
   id: 1,
-  first_name: 'Jane',
-  last_name: 'Doe',
+  username: 'jane',
   email: 'jane@example.com',
   enabled: true,
   account_locked: false,
@@ -47,25 +46,24 @@ describe('ProfilePage', () => {
 
   it('should create', () => {
     fixture.detectChanges();
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('displays user name and email', () => {
+  it('displays username', () => {
     fixture.detectChanges();
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
     fixture.detectChanges();
 
     const title = fixture.debugElement.query(By.css('mat-card-title'));
-    expect(title.nativeElement.textContent).toContain('Jane');
-    expect(title.nativeElement.textContent).toContain('Doe');
+    expect(title.nativeElement.textContent).toContain('jane');
   });
 
   it('shows error state and retry button on failure', () => {
     fixture.detectChanges();
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     req.error(new ProgressEvent('error'));
     fixture.detectChanges();
 

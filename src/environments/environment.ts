@@ -1,18 +1,15 @@
 /**
  * Production environment configuration.
  *
- * Both API URLs use relative paths so the Angular app works regardless of the
- * host it is deployed on. The dev proxy (proxy.conf.json) forwards these paths
- * to the actual backends in development; nginx does the same in Docker.
+ * The API URL uses a relative path so the Angular app works regardless of the
+ * host it is deployed on. The dev proxy (proxy.conf.json) forwards /api/v1 to
+ * the SBT backend in development; nginx does the same in Docker.
  *
- * identityApiUrl: used by auth, users, roles and permissions services
- * apiUrl: used by categories, products, customers and orders services
- *
- * The /api/v1 entry in the proxy must come BEFORE /api because /api/v1/...
- * also matches the shorter /api prefix.
+ * SST (spring-security-tutorial) has been decommissioned. SBT now owns all
+ * endpoints (auth, users, roles, permissions, categories, products, customers,
+ * orders) under a single base URL.
  */
 export const environment = {
-  production:      true,
-  identityApiUrl:  '/api',
-  apiUrl:          '/api/v1',
+  production: true,
+  apiUrl:     '/api/v1',
 };

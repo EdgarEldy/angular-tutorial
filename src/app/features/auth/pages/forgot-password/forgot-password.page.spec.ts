@@ -46,7 +46,7 @@ describe('ForgotPasswordPage', () => {
     fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.click();
     fixture.detectChanges();
 
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/forgot-password`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/forgot-password`);
     req.flush({ success: true, message: '', data: null, timestamp: '' });
     fixture.detectChanges();
 
@@ -63,7 +63,7 @@ describe('ForgotPasswordPage', () => {
     fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.click();
     fixture.detectChanges();
 
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/forgot-password`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/forgot-password`);
     req.error(new ProgressEvent('error'));
     fixture.detectChanges();
 

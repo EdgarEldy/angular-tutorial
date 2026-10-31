@@ -48,48 +48,37 @@ describe('authInterceptor', () => {
   });
 
   it('does not add Authorization header when no token is stored', async () => {
-    const req$ = firstValueFrom(http.get(`${environment.identityApiUrl}/auth/me`));
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req$ = firstValueFrom(http.get(`${environment.apiUrl}/auth/me`));
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     expect(req.request.headers.has('Authorization')).toBe(false);
     req.flush({});
     await req$;
   });
 
-  it('adds Authorization header for identity API requests with a valid token', async () => {
-    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
+  it('adds Authorization header for API requests with a valid token', async () => {
+    const token = buildJwt({ sub: 'alice', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
     localStorage.setItem('access_token', token);
 
-    const req$ = firstValueFrom(http.get(`${environment.identityApiUrl}/auth/me`));
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
-    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
-    req.flush({});
-    await req$;
-  });
-
-  it('adds Authorization header for business API requests with a valid token', async () => {
-    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
-    localStorage.setItem('access_token', token);
-
-    const req$ = firstValueFrom(http.get(`${environment.apiUrl}/products`));
-    const req = httpCtrl.expectOne(`${environment.apiUrl}/products`);
+    const req$ = firstValueFrom(http.get(`${environment.apiUrl}/auth/me`));
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     expect(req.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
     req.flush({});
     await req$;
   });
 
   it('does not add Authorization header when the token is expired', async () => {
-    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: PAST_EXP, jti: 'x' });
+    const token = buildJwt({ sub: 'alice', roles: [], permissions: [], exp: PAST_EXP, jti: 'x' });
     localStorage.setItem('access_token', token);
 
-    const req$ = firstValueFrom(http.get(`${environment.identityApiUrl}/auth/me`));
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req$ = firstValueFrom(http.get(`${environment.apiUrl}/auth/me`));
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     expect(req.request.headers.has('Authorization')).toBe(false);
     req.flush({});
     await req$;
   });
 
   it('does not add Authorization header for non-API requests', async () => {
-    const token = buildJwt({ sub: 'u@e.com', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
+    const token = buildJwt({ sub: 'alice', roles: [], permissions: [], exp: FUTURE_EXP, jti: 'x' });
     localStorage.setItem('access_token', token);
 
     const req$ = firstValueFrom(http.get('https://cdn.example.com/image.png'));

@@ -5,7 +5,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -24,17 +24,21 @@ import { UserResponse } from '../../models/user-response.model';
 /** Data injected into the dialog from the parent component. */
 export interface UpdateProfileDialogData {
   userId: number;
-  firstName: string;
-  lastName: string;
+  username: string;
+  email: string;
 }
 
 /**
- * Dialog for editing the current user's first and last name.
+ * Dialog for editing the current user's username and email.
  *
  * MAT_DIALOG_DATA is the Angular Material injection token that carries
  * the data object passed to dialog.open(). The dialog is closed with
  * MatDialogRef.close(result) where result is either the updated UserResponse
  * (on success) or undefined (on cancel).
+ *
+ * Both fields are optional in UpdateProfileRequest: the user can update just
+ * one field and leave the other unchanged. The form pre-fills the current
+ * values so the user sees what they are editing.
  *
  * A 400 response maps fieldErrors onto the form controls so the user can
  * see exactly which field the backend rejected. The dialog stays open on
@@ -67,9 +71,10 @@ export class UpdateProfileDialog {
   protected readonly loading = signal(false);
   protected readonly serverError = signal<string | null>(null);
 
-  protected readonly form = this.fb.nonNullable.group({
-    first_name: [this.data.firstName, Validators.required],
-    last_name: [this.data.lastName, Validators.required],
+  // Both fields are optional per UpdateProfileRequest; no Validators.required
+  protected readonly form = this.fb.group({
+    username: [this.data.username],
+    email: [this.data.email],
   });
 
   /**
@@ -85,9 +90,13 @@ export class UpdateProfileDialog {
     this.loading.set(true);
     this.serverError.set(null);
 
-    const { first_name, last_name } = this.form.getRawValue();
+    const { username, email } = this.form.getRawValue();
+    // Strip nulls: send only fields that have a value
+    const payload: { username?: string; email?: string } = {};
+    if (username) payload.username = username;
+    if (email) payload.email = email;
 
-    this.auth.updateProfile(this.data.userId, { first_name, last_name }).subscribe({
+    this.auth.updateProfile(this.data.userId, payload).subscribe({
       next: (updated: UserResponse) => {
         this.dialogRef.close(updated);
       },
