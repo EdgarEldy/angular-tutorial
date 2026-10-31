@@ -38,7 +38,7 @@ const TOKEN_KEY = 'access_token';
 @Injectable({ providedIn: 'root' })
 export class Auth {
   private readonly http = inject(HttpClient);
-  private readonly base = environment.identityApiUrl;
+  private readonly base = environment.apiUrl;
 
   // ---------------------------------------------------------------------------
   // Session state signals
@@ -206,15 +206,19 @@ export class Auth {
   /**
    * Activates an account using the token from the email link.
    *
+   * The endpoint is GET /api/v1/auth/activate?token=... and returns the
+   * activated UserResponse on success. The activation page can use the
+   * response to display the username and invite the user to log in.
+   *
    * @param token - activation token extracted from the ?token= query parameter
-   * @returns observable that completes on success or errors with AppError
+   * @returns observable that emits the activated UserResponse or errors with AppError
    */
-  activateAccount(token: string): Observable<void> {
+  activateAccount(token: string): Observable<UserResponse> {
     return this.http
-      .get<ApiResponse<void>>(`${this.base}/auth/activate-account`, {
+      .get<ApiResponse<UserResponse>>(`${this.base}/auth/activate`, {
         params: { token },
       })
-      .pipe(map(() => undefined));
+      .pipe(map((res) => res.data));
   }
 
   /**
@@ -292,10 +296,10 @@ export class Auth {
   }
 
   /**
-   * Updates the authenticated user's profile (first and last name).
+   * Updates the authenticated user's profile (username and/or email).
    *
    * @param userId - numeric ID of the user to update (from currentUser signal)
-   * @param payload - new first and last name values
+   * @param payload - optional new username and/or email values
    * @returns observable that emits the updated UserResponse
    */
   updateProfile(userId: number, payload: UpdateProfileRequest): Observable<UserResponse> {
