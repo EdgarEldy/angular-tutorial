@@ -4,11 +4,12 @@ import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../shared/models/api-response.model';
+import { PageResponse } from '../../shared/models/page-response.model';
 import { RoleResponse } from '../auth/models/user-response.model';
 import { RoleRequest } from './models/role-request.model';
 
 /**
- * Service for the /api/roles resource (Identity API).
+ * Service for the /api/v1/roles resource.
  *
  * All endpoints require the ADMIN role. The service handles CRUD for roles and
  * the two assignment endpoints that add or remove a permission from a role.
@@ -17,21 +18,32 @@ import { RoleRequest } from './models/role-request.model';
  * ManagePermissionsDialog can refresh its chip list from the server's state
  * rather than computing the change locally -- this keeps the UI consistent
  * with any concurrent modifications.
+ *
+ * getRoles() uses the paginated endpoint with size=1000 and extracts the
+ * content array. The role list is expected to be small enough that a single
+ * large page is equivalent to a flat list, avoiding the need for client-side
+ * pagination of role data.
  */
 @Injectable({ providedIn: 'root' })
 export class Roles {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.identityApiUrl}/roles`;
+  private readonly base = `${environment.apiUrl}/roles`;
 
   /**
    * Returns all roles with their nested permissions.
    *
+   * The backend endpoint is paginated; size=1000 fetches all roles in one call.
+   * The content array is extracted so callers receive a plain RoleResponse[].
+   *
    * @returns Observable of RoleResponse array
    */
   getRoles(): Observable<RoleResponse[]> {
+    // HttpParams is immutable; each set() returns a new instance
     return this.http
-      .get<ApiResponse<RoleResponse[]>>(this.base)
-      .pipe(map((res) => res.data));
+      .get<ApiResponse<PageResponse<RoleResponse>>>(this.base, {
+        params: { size: 1000 },
+      })
+      .pipe(map((res) => res.data.content));
   }
 
   /**

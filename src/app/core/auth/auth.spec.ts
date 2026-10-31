@@ -22,8 +22,9 @@ function buildJwt(payload: Record<string, unknown>): string {
 const FUTURE_EXP = Math.floor(Date.now() / 1000) + 3600;
 const PAST_EXP = Math.floor(Date.now() / 1000) - 1;
 
+// sub is the username, not email, per the new backend contract
 const validToken = buildJwt({
-  sub: 'test@example.com',
+  sub: 'testuser',
   roles: ['USER'],
   permissions: ['PRODUCT:READ'],
   exp: FUTURE_EXP,
@@ -31,7 +32,7 @@ const validToken = buildJwt({
 });
 
 const expiredToken = buildJwt({
-  sub: 'test@example.com',
+  sub: 'testuser',
   roles: ['ADMIN'],
   permissions: [],
   exp: PAST_EXP,
@@ -138,8 +139,13 @@ describe('Auth', () => {
       service.login({ email: 'a@b.com', password: 'secret123' }),
     );
 
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/login`);
-    req.flush({ success: true, message: 'OK', data: { token: validToken }, timestamp: '' });
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/login`);
+    req.flush({
+      success: true,
+      message: 'OK',
+      data: { token: validToken, token_type: 'Bearer', username: 'testuser' },
+      timestamp: '',
+    });
 
     const res = await promise;
     expect(res.token).toBe(validToken);
@@ -148,15 +154,13 @@ describe('Auth', () => {
 
   it('register calls POST /auth/register and returns UserResponse', async () => {
     const payload = {
-      first_name: 'Jane',
-      last_name: 'Doe',
+      username: 'jane',
       email: 'jane@example.com',
       password: 'password123',
     };
     const userStub = {
       id: 1,
-      first_name: 'Jane',
-      last_name: 'Doe',
+      username: 'jane',
       email: 'jane@example.com',
       enabled: false,
       account_locked: false,
@@ -164,7 +168,7 @@ describe('Auth', () => {
     };
 
     const promise = firstValueFrom(service.register(payload));
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/register`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/register`);
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
 
     const user = await promise;
@@ -175,7 +179,7 @@ describe('Auth', () => {
     service.storeToken(validToken);
 
     const promise = firstValueFrom(service.logout());
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/logout`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/logout`);
     req.error(new ProgressEvent('error'));
 
     await promise;
@@ -185,8 +189,7 @@ describe('Auth', () => {
   it('loadCurrentUser populates currentUser signal', async () => {
     const userStub = {
       id: 42,
-      first_name: 'Admin',
-      last_name: 'User',
+      username: 'admin',
       email: 'admin@example.com',
       enabled: true,
       account_locked: false,
@@ -194,7 +197,7 @@ describe('Auth', () => {
     };
 
     const promise = firstValueFrom(service.loadCurrentUser());
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
 
     const user = await promise;
@@ -204,7 +207,7 @@ describe('Auth', () => {
 
   it('loadCurrentUser returns null and does not throw when the request fails', async () => {
     const promise = firstValueFrom(service.loadCurrentUser());
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     req.error(new ProgressEvent('error'));
 
     const user = await promise;
@@ -213,12 +216,12 @@ describe('Auth', () => {
 
   it('getProfile returns UserResponse and propagates errors', async () => {
     const userStub = {
-      id: 1, first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com',
+      id: 1, username: 'jane', email: 'jane@example.com',
       enabled: true, account_locked: false, roles: [],
     };
 
     const promise = firstValueFrom(service.getProfile());
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/me`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/me`);
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
 
     const user = await promise;
@@ -228,36 +231,42 @@ describe('Auth', () => {
 
   it('updateProfile calls PUT /users/:id and returns updated user', async () => {
     const userStub = {
-      id: 7, first_name: 'Janet', last_name: 'Smith', email: 'j@example.com',
+      id: 7, username: 'janet', email: 'j@example.com',
       enabled: true, account_locked: false, roles: [],
     };
 
     const promise = firstValueFrom(
-      service.updateProfile(7, { first_name: 'Janet', last_name: 'Smith' }),
+      service.updateProfile(7, { username: 'janet' }),
     );
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/users/7`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/users/7`);
     expect(req.request.method).toBe('PUT');
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
 
     const user = await promise;
-    expect(user.first_name).toBe('Janet');
+    expect(user.username).toBe('janet');
     expect(service.currentUser()).toEqual(userStub);
   });
 
-  it('activateAccount calls GET /auth/activate-account with token param', async () => {
+  it('activateAccount calls GET /auth/activate with token param', async () => {
+    const userStub = {
+      id: 5, username: 'newuser', email: 'new@example.com',
+      enabled: true, account_locked: false, roles: [],
+    };
+
     const promise = firstValueFrom(service.activateAccount('my-token'));
     const req = httpCtrl.expectOne(
-      `${environment.identityApiUrl}/auth/activate-account?token=my-token`,
+      `${environment.apiUrl}/auth/activate?token=my-token`,
     );
     expect(req.request.method).toBe('GET');
-    req.flush({ success: true, message: 'Activated', data: null, timestamp: '' });
+    req.flush({ success: true, message: 'Activated', data: userStub, timestamp: '' });
 
-    await promise;
+    const user = await promise;
+    expect(user.username).toBe('newuser');
   });
 
   it('forgotPassword calls POST /auth/forgot-password', async () => {
     const promise = firstValueFrom(service.forgotPassword({ email: 'a@b.com' }));
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/forgot-password`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/forgot-password`);
     expect(req.request.method).toBe('POST');
     req.flush({ success: true, message: '', data: null, timestamp: '' });
 
@@ -268,7 +277,7 @@ describe('Auth', () => {
     const promise = firstValueFrom(
       service.resetPassword({ token: 'tok', new_password: 'newPass123' }),
     );
-    const req = httpCtrl.expectOne(`${environment.identityApiUrl}/auth/reset-password`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/reset-password`);
     expect(req.request.method).toBe('POST');
     req.flush({ success: true, message: '', data: null, timestamp: '' });
 

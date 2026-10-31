@@ -106,7 +106,7 @@ export class ProfilePage implements OnInit {
   }
 
   /**
-   * Opens the UpdateProfileDialog pre-populated with the current user's name.
+   * Opens the UpdateProfileDialog pre-populated with the current user's username and email.
    * On dialog close with a result, updates the user signal with the returned
    * UserResponse so the page reflects the change immediately without a reload.
    */
@@ -120,8 +120,8 @@ export class ProfilePage implements OnInit {
         const ref = this.dialog.open(UpdateProfileDialog, {
           data: {
             userId: current.id,
-            firstName: current.first_name,
-            lastName: current.last_name,
+            username: current.username,
+            email: current.email,
           },
           width: '400px',
         });

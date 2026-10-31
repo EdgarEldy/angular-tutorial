@@ -30,10 +30,10 @@ export interface EditUserDialogData {
 }
 
 /**
- * Dialog for editing a user's first and last name via PUT /api/users/{id}.
+ * Dialog for editing a user's username and/or email via PUT /api/v1/users/{id}.
  *
- * Pre-fills the form with the current name. On success the dialog closes
- * with the updated UserResponse so the parent page can refresh its row.
+ * Pre-fills the form with the current username and email. On success the dialog
+ * closes with the updated UserResponse so the parent page can refresh its row.
  * VALIDATION (400) field errors are mapped onto form controls.
  */
 @Component({
@@ -62,12 +62,12 @@ export class EditUserDialog {
   protected readonly serverError = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
-    first_name: [this.data.user.first_name, Validators.required],
-    last_name: [this.data.user.last_name, Validators.required],
+    username: [this.data.user.username, Validators.required],
+    email: [this.data.user.email, [Validators.required, Validators.email]],
   });
 
   /**
-   * Submits the form to PUT /api/users/{id}.
+   * Submits the form to PUT /api/v1/users/{id}.
    *
    * On success: closes with the updated user.
    * On VALIDATION (400): maps fieldErrors onto form controls.
@@ -79,10 +79,10 @@ export class EditUserDialog {
     this.loading.set(true);
     this.serverError.set(null);
 
-    const { first_name, last_name } = this.form.getRawValue();
+    const { username, email } = this.form.getRawValue();
 
     this.usersService
-      .updateUser(this.data.user.id, { first_name, last_name })
+      .updateUser(this.data.user.id, { username, email })
       .subscribe({
         next: (updated) => {
           this.dialogRef.close(updated);

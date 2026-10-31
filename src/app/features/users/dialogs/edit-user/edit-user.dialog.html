@@ -3,24 +3,27 @@
 <mat-dialog-content>
   <form [formGroup]="form" id="edit-user-form">
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>First name</mat-label>
-      <input matInput formControlName="first_name" />
-      @if (form.get('first_name')?.hasError('required')) {
-        <mat-error>First name is required.</mat-error>
+      <mat-label>Username</mat-label>
+      <input matInput formControlName="username" />
+      @if (form.get('username')?.hasError('required')) {
+        <mat-error>Username is required.</mat-error>
       }
-      @if (form.get('first_name')?.hasError('serverError')) {
-        <mat-error>{{ form.get('first_name')?.getError('serverError') }}</mat-error>
+      @if (form.get('username')?.hasError('serverError')) {
+        <mat-error>{{ form.get('username')?.getError('serverError') }}</mat-error>
       }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Last name</mat-label>
-      <input matInput formControlName="last_name" />
-      @if (form.get('last_name')?.hasError('required')) {
-        <mat-error>Last name is required.</mat-error>
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" />
+      @if (form.get('email')?.hasError('required')) {
+        <mat-error>Email is required.</mat-error>
       }
-      @if (form.get('last_name')?.hasError('serverError')) {
-        <mat-error>{{ form.get('last_name')?.getError('serverError') }}</mat-error>
+      @if (form.get('email')?.hasError('email')) {
+        <mat-error>Enter a valid email address.</mat-error>
+      }
+      @if (form.get('email')?.hasError('serverError')) {
+        <mat-error>{{ form.get('email')?.getError('serverError') }}</mat-error>
       }
     </mat-form-field>
 

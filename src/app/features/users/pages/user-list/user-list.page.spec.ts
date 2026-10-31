@@ -10,8 +10,7 @@ import { AppError } from '../../../../core/http/app-error.model';
 
 const userStub = {
   id: 1,
-  first_name: 'Jane',
-  last_name: 'Doe',
+  username: 'jane',
   email: 'jane@example.com',
   enabled: true,
   account_locked: false,
@@ -28,8 +27,9 @@ const pageMock = {
 
 const usersMock = {
   getUsers: () => of(pageMock),
-  lockUser: () => of(undefined),
-  unlockUser: () => of(undefined),
+  // lockUser and unlockUser now return the updated UserResponse
+  lockUser: () => of({ ...userStub, account_locked: true }),
+  unlockUser: () => of({ ...userStub, account_locked: false }),
   deleteUser: () => of(undefined),
 };
 
@@ -109,4 +109,3 @@ describe('UserListPage', () => {
     expect(disabledBtns.length).toBeGreaterThanOrEqual(2);
   });
 });
-
