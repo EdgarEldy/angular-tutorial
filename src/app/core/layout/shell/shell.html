@@ -93,7 +93,7 @@
       </div>
 
       @if (profileOpen()) {
-        <div class="dropdown" (click)="$event.stopPropagation()">
+        <div class="dropdown" tabindex="0" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
           <div class="dd-hdr">
             <div class="dd-name">{{ displayName() }}</div>
             <div class="dd-email">{{ auth.currentUser()?.email }}</div>
