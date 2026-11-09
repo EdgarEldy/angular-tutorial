@@ -42,7 +42,7 @@ describe('roleGuard', () => {
   afterEach(() => localStorage.clear());
 
   it('returns true when the user holds the required role', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: ['ADMIN'], permissions: [], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['ADMIN'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['ADMIN']),
       { url: '/admin' } as RouterStateSnapshot,
@@ -51,7 +51,7 @@ describe('roleGuard', () => {
   });
 
   it('redirects to /not-allowed when authenticated but role is missing', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: ['USER'], permissions: [], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['USER'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['ADMIN']),
       { url: '/admin' } as RouterStateSnapshot,

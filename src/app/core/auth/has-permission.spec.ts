@@ -43,7 +43,7 @@ describe('HasPermissionDirective', () => {
   afterEach(() => localStorage.clear());
 
   it('renders the template when the user has the permission', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:WRITE'], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:WRITE'], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const fixture = TestBed.createComponent(PermissionHostComponent);
     fixture.detectChanges();
     const el = fixture.debugElement.query(By.css('#target'));
@@ -51,7 +51,7 @@ describe('HasPermissionDirective', () => {
   });
 
   it('does not render when the user lacks the permission', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:READ'], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:READ'], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const fixture = TestBed.createComponent(PermissionHostComponent);
     fixture.detectChanges();
     const el = fixture.debugElement.query(By.css('#target'));
@@ -92,14 +92,14 @@ describe('HasRoleDirective', () => {
   afterEach(() => localStorage.clear());
 
   it('renders when the user has the ADMIN role', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: ['ADMIN'], permissions: [], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['ADMIN'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const fixture = TestBed.createComponent(RoleHostComponent);
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('#admin-link'))).toBeTruthy();
   });
 
   it('does not render when the user lacks the ADMIN role', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: ['USER'], permissions: [], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['USER'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const fixture = TestBed.createComponent(RoleHostComponent);
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('#admin-link'))).toBeNull();

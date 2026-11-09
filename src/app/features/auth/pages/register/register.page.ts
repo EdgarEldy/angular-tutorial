@@ -41,9 +41,10 @@ export const passwordsMatch: ValidatorFn = (
 };
 
 /**
- * Registration page: collects username, email, and password, then calls
- * Auth.register(). On success it shows a confirmation message instead of
- * navigating, because the account must be activated via email before login.
+ * Registration page: collects first_name, last_name, username, email and
+ * password, then calls Auth.register(). On success it shows a confirmation
+ * message instead of navigating, because the account must be activated via
+ * email before login.
  *
  * A 400 response maps field errors from the backend onto the corresponding
  * form controls so the user can see exactly which field failed validation.
@@ -72,6 +73,8 @@ export class RegisterPage {
 
   protected readonly form = this.fb.nonNullable.group(
     {
+      first_name: ['', [Validators.required]],
+      last_name: ['', [Validators.required]],
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
@@ -83,10 +86,10 @@ export class RegisterPage {
   /**
    * Submits the registration form.
    *
-   * On 400: maps fieldErrors from AppError onto the corresponding controls.
-   * On success: shows a confirmation message and does not navigate.
-   *
-   * @param payload - form values minus confirmPassword (which is UI-only)
+   * confirm_password is sent to the backend so the server can validate the
+   * match independently of the client-side validator. On 400 field errors
+   * are mapped onto the corresponding form controls. On success a confirmation
+   * message is shown and the user is prompted to check their email.
    */
   protected submit(): void {
     if (this.form.invalid) return;
@@ -94,32 +97,42 @@ export class RegisterPage {
     this.loading.set(true);
     this.serverError.set(null);
 
-    const { username, email, password } = this.form.getRawValue();
+    const { first_name, last_name, username, email, password, confirmPassword } =
+      this.form.getRawValue();
 
-    this.auth.register({ username, email, password }).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.successMessage.set(
-          'Registration successful! Check your email to activate your account.',
-        );
-      },
-      error: (err: AppError) => {
-        this.loading.set(false);
+    this.auth
+      .register({
+        first_name,
+        last_name,
+        username,
+        email,
+        password,
+        confirm_password: confirmPassword,
+      })
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.successMessage.set(
+            'Registration successful! Check your email to activate your account.',
+          );
+        },
+        error: (err: AppError) => {
+          this.loading.set(false);
 
-        if (err.kind === 'VALIDATION' && err.fieldErrors) {
-          // Map server field errors onto the reactive form controls
-          for (const [field, message] of Object.entries(err.fieldErrors)) {
-            const control = this.form.get(field);
-            if (control) {
-              // setErrors merges with existing validators; the template reads
-              // control.hasError('serverError') to show backend messages
-              control.setErrors({ serverError: message });
+          if (err.kind === 'VALIDATION' && err.fieldErrors) {
+            // Map server field errors onto the reactive form controls
+            for (const [field, message] of Object.entries(err.fieldErrors)) {
+              const control = this.form.get(field);
+              if (control) {
+                // setErrors merges with existing validators; the template reads
+                // control.hasError('serverError') to show backend messages
+                control.setErrors({ serverError: message });
+              }
             }
+          } else {
+            this.serverError.set(err.message);
           }
-        } else {
-          this.serverError.set(err.message);
-        }
-      },
-    });
+        },
+      });
   }
 }
