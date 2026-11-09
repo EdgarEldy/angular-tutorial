@@ -35,7 +35,7 @@
         </mat-icon>
         <h2 class="auth-title" style="margin-top:16px;font-size:18px">Account activated!</h2>
         <p class="auth-sub">Your account is now active. You can sign in.</p>
-        <a routerLink="/login" class="btn btn-primary" style="margin-top:4px">
+        <a routerLink="/auth/login" class="btn btn-primary" style="margin-top:4px">
           Go to sign in
         </a>
       } @else if (errorMessage()) {
@@ -45,7 +45,7 @@
         <h2 class="auth-title" style="margin-top:16px;font-size:18px">Activation failed</h2>
         <!-- .error-text is queried by ActivateAccountPage spec -->
         <p class="error-text auth-sub">{{ errorMessage() }}</p>
-        <a routerLink="/register" class="btn btn-secondary" style="margin-top:4px">
+        <a routerLink="/auth/register" class="btn btn-secondary" style="margin-top:4px">
           Register again
         </a>
       }
