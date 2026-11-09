@@ -1,14 +1,14 @@
 /**
- * Payload sent to POST /api/auth/reset-password.
+ * Payload sent to POST /api/v1/auth/reset-password?token=.
  *
- * The token is taken from the query-string of the reset link emailed to the
- * user. The backend validates the token (existence, expiry, single-use) and
- * updates the password. A 400 response with a plain message indicates an
- * invalid or expired token and should be shown inline on the form.
+ * The reset token is passed as a query parameter, not in the body. The backend
+ * validates the token (existence, expiry, single-use) and updates the password
+ * only when new_password and confirm_password match. A 400 response indicates
+ * an invalid or expired token and is shown as a page-level error.
  */
 export interface ResetPasswordRequest {
-  /** Single-use reset token extracted from the email link query parameter. */
-  token: string;
   /** The new password chosen by the user. */
   new_password: string;
+  /** Must equal new_password; validated server-side as well as client-side. */
+  confirm_password: string;
 }

@@ -55,7 +55,14 @@ describe('ResetPasswordPage', () => {
     fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.click();
     fixture.detectChanges();
 
-    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/reset-password`);
+    // Token is passed as a query parameter, not in the request body
+    const req = httpCtrl.expectOne(
+      `${environment.apiUrl}/auth/reset-password?token=test-token`,
+    );
+    expect(req.request.body).toEqual({
+      new_password: 'password123',
+      confirm_password: 'password123',
+    });
     req.flush(
       { success: false, message: 'Token is expired or invalid', data: null, timestamp: '' },
       { status: 400, statusText: 'Bad Request' },
