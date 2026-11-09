@@ -61,9 +61,9 @@ describe('RegisterPage', () => {
   });
 
   it('shows success message and hides form on 201', () => {
-    // Fields order: username, email, password, confirmPassword
+    // Fields order: first_name, last_name, username, email, password, confirmPassword
     const inputs = fixture.debugElement.queryAll(By.css('input'));
-    const values = ['alice', 'alice@example.com', 'password123', 'password123'];
+    const values = ['Jane', 'Doe', 'alice', 'alice@example.com', 'password123', 'password123'];
 
     inputs.forEach((el, i) => {
       el.nativeElement.value = values[i];
@@ -76,10 +76,27 @@ describe('RegisterPage', () => {
     fixture.detectChanges();
 
     const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/register`);
+    expect(req.request.body).toEqual({
+      first_name: 'Jane',
+      last_name: 'Doe',
+      username: 'alice',
+      email: 'alice@example.com',
+      password: 'password123',
+      confirm_password: 'password123',
+    });
     req.flush({
       success: true,
       message: 'Registered',
-      data: { id: 1, username: 'alice', email: 'alice@example.com', enabled: false, account_locked: false, roles: [] },
+      data: {
+        id: 1,
+        first_name: 'Jane',
+        last_name: 'Doe',
+        username: 'alice',
+        email: 'alice@example.com',
+        enabled: false,
+        account_locked: false,
+        roles: [],
+      },
       timestamp: '',
     });
     fixture.detectChanges();
