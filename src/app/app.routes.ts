@@ -48,11 +48,13 @@ export const routes: Routes = [
       // Default redirect
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
-      // Dashboard stub (feature/dashboard branch)
+      // Dashboard
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
+          import('./features/dashboard/pages/dashboard/dashboard.page').then(
+            (m) => m.DashboardPage,
+          ),
       },
 
       // Categories (feature/categories branch)
