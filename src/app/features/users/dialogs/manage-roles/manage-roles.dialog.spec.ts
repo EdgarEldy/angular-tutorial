@@ -11,7 +11,8 @@ import { AppError } from '../../../../core/http/app-error.model';
 
 const roleStub = { id: 10, role_name: 'ADMIN', permissions: [] };
 const userStub = {
-  id: 1, username: 'jane', email: 'jane@example.com',
+  id: 1, first_name: 'Jane', last_name: 'Doe',
+  username: 'jane', email: 'jane@example.com',
   enabled: true, account_locked: false, roles: [],
 };
 const userWithRole = { ...userStub, roles: [roleStub] };
