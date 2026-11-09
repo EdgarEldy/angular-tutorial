@@ -60,12 +60,12 @@ describe('roleGuard', () => {
     expect(result.toString()).toContain('/not-allowed');
   });
 
-  it('redirects to /login when unauthenticated', () => {
+  it('redirects to /auth/login when unauthenticated', () => {
     const result = executeGuard(
       makeRoute(['ADMIN']),
       { url: '/admin' } as RouterStateSnapshot,
     ) as UrlTree;
-    expect(result.toString()).toContain('/login');
+    expect(result.toString()).toContain('/auth/login');
     expect(result.queryParams['returnUrl']).toBe('/admin');
   });
 });

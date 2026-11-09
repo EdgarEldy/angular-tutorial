@@ -209,7 +209,7 @@ export class Auth {
   /**
    * Activates an account using the token from the email link.
    *
-   * The endpoint is GET /api/v1/auth/activate?token=... and returns the
+   * The endpoint is GET /api/v1/auth/activate-account?token=... and returns the
    * activated UserResponse on success. The activation page can use the
    * response to display the username and invite the user to log in.
    *
@@ -218,7 +218,7 @@ export class Auth {
    */
   activateAccount(token: string): Observable<UserResponse> {
     return this.http
-      .get<ApiResponse<UserResponse>>(`${this.base}/auth/activate`, {
+      .get<ApiResponse<UserResponse>>(`${this.base}/auth/activate-account`, {
         params: { token },
       })
       .pipe(map((res) => res.data));

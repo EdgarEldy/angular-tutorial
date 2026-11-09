@@ -41,14 +41,14 @@ describe('authGuard', () => {
     expect(result).toBe(true);
   });
 
-  it('redirects to /login with returnUrl when unauthenticated', () => {
+  it('redirects to /auth/login with returnUrl when unauthenticated', () => {
     const result = executeGuard(
       {} as ActivatedRouteSnapshot,
       { url: '/profile' } as RouterStateSnapshot,
     ) as UrlTree;
 
     expect(result).toBeInstanceOf(UrlTree);
-    expect(result.toString()).toContain('/login');
+    expect(result.toString()).toContain('/auth/login');
     expect(result.queryParams['returnUrl']).toBe('/profile');
   });
 });

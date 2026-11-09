@@ -54,14 +54,14 @@ describe('ActivateAccountPage -- with token', () => {
     fixture.detectChanges();
     const spinner = fixture.debugElement.query(By.css('mat-spinner'));
     expect(spinner).toBeTruthy();
-    httpCtrl.expectOne(`${environment.apiUrl}/auth/activate?token=valid-token`).flush({
+    httpCtrl.expectOne(`${environment.apiUrl}/auth/activate-account?token=valid-token`).flush({
       success: true, message: 'Activated', data: activatedUserStub, timestamp: '',
     });
   });
 
   it('shows success state after activation', () => {
     fixture.detectChanges();
-    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/activate?token=valid-token`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/activate-account?token=valid-token`);
     req.flush({ success: true, message: 'Activated', data: activatedUserStub, timestamp: '' });
     fixture.detectChanges();
 
@@ -71,7 +71,7 @@ describe('ActivateAccountPage -- with token', () => {
 
   it('shows error message when activation fails', () => {
     fixture.detectChanges();
-    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/activate?token=valid-token`);
+    const req = httpCtrl.expectOne(`${environment.apiUrl}/auth/activate-account?token=valid-token`);
     req.flush(
       { success: false, message: 'Token expired', data: null, timestamp: '' },
       { status: 400, statusText: 'Bad Request' },
