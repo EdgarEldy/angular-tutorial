@@ -28,12 +28,12 @@ export const routes: Routes = [
   // Redirect the bare root to the default authenticated page.
   // Angular resolves this first (pathMatch: 'full' means exact '/' only),
   // then the shell's authGuard decides: authenticated users land on
-  // /dashboard, unauthenticated users are redirected to /login.
+  // /dashboard, unauthenticated users are redirected to /auth/login.
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
-  // Auth pages (outside shell -- no toolbar/sidenav for login, register, etc.)
+  // Auth pages under /auth/** (outside shell -- no toolbar/sidenav)
   {
-    path: '',
+    path: 'auth',
     loadChildren: () =>
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
