@@ -1,0 +1,90 @@
+<div class="dash">
+
+  <!-- Page header -->
+  <div class="dash-header">
+    <div>
+      <h1 class="dash-title">Good morning, {{ displayName() }}</h1>
+      <p class="dash-sub">Overview for {{ today }}</p>
+    </div>
+  </div>
+
+  <!-- KPI cards: sticky so they remain visible while scrolling the rest of the page -->
+  <div class="kpi-bar">
+    <div class="kpi-grid">
+      @for (kpi of kpis; track kpi.label) {
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">{{ kpi.label }}</span>
+            <div class="kpi-icon kpi-{{ kpi.mod }}">
+              <mat-icon fontSet="material-icons-outlined">{{ kpi.icon }}</mat-icon>
+            </div>
+          </div>
+          <div class="kpi-value">{{ kpi.value }}</div>
+          @if (kpi.trend) {
+            <div class="kpi-trend">{{ kpi.trend }}</div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Quick access -->
+  <p class="section-label">Quick access</p>
+  <div class="tile-grid">
+    @for (tile of tiles; track tile.route) {
+      <a class="tile" [routerLink]="tile.route">
+        <div class="tile-thumb tile-{{ tile.mod }}">
+          <mat-icon fontSet="material-icons-outlined">{{ tile.icon }}</mat-icon>
+        </div>
+        <div class="tile-body">
+          <span class="tile-name">{{ tile.label }}</span>
+          <span class="tile-desc">{{ tile.desc }}</span>
+        </div>
+        <mat-icon class="tile-arrow" fontSet="material-icons-outlined">chevron_right</mat-icon>
+      </a>
+    }
+  </div>
+
+  <!-- Session info -->
+  <p class="section-label">Your session</p>
+  <div class="session-card">
+
+    <div class="sess-row">
+      <span class="sess-key">Username</span>
+      <span class="sess-val">{{ auth.currentUser()?.username ?? '--' }}</span>
+    </div>
+
+    <div class="sess-row">
+      <span class="sess-key">Email</span>
+      <span class="sess-val">{{ auth.currentUser()?.email ?? '--' }}</span>
+    </div>
+
+    <div class="sess-row">
+      <span class="sess-key">Roles</span>
+      <span class="sess-val sess-tags">
+        @for (role of auth.roles(); track role) {
+          <!-- role tag: accent for ADMIN, neutral for others -->
+          <span class="tag" [class.tag-accent]="role === 'ADMIN'">{{ role }}</span>
+        }
+        @if (auth.roles().length === 0) {
+          <span class="sess-empty">None</span>
+        }
+      </span>
+    </div>
+
+    <div class="sess-row">
+      <span class="sess-key">Token expires</span>
+      <span class="sess-val sess-expiry">
+        <!-- green dot = valid, red dot = expired -->
+        <span
+          class="expiry-dot"
+          [class.expiry-ok]="auth.isAuthenticated()"
+          [class.expiry-bad]="!auth.isAuthenticated()">
+        </span>
+        {{ tokenExpiry() }}
+      </span>
+    </div>
+
+  </div>
+
+</div>
