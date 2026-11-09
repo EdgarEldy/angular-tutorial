@@ -137,4 +137,21 @@ export class Users {
       .put<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles`, body)
       .pipe(map((res) => res.data));
   }
+
+  /**
+   * Removes a single role from a user without touching the rest of the role set.
+   *
+   * Complements assignRoles() for UIs that need a one-click remove action
+   * (e.g., a chip with a delete button) where rebuilding the full role ID array
+   * would require a prior getUser() round-trip.
+   *
+   * @param userId - user id
+   * @param roleId - id of the role to remove
+   * @returns Observable of the updated UserResponse after the role is removed
+   */
+  removeRole(userId: number, roleId: number): Observable<UserResponse> {
+    return this.http
+      .delete<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles/${roleId}`)
+      .pipe(map((res) => res.data));
+  }
 }
