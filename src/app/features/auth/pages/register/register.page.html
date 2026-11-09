@@ -28,7 +28,7 @@
         <div class="success-message" role="status">
           <h1 class="auth-title" style="color:#16a34a">Check your inbox</h1>
           <p class="auth-sub">{{ successMessage() }}</p>
-          <a routerLink="/login" class="btn btn-primary btn-full">Go to sign in</a>
+          <a routerLink="/auth/login" class="btn btn-primary btn-full">Go to sign in</a>
         </div>
       } @else {
 
@@ -199,7 +199,7 @@
         </form>
 
         <p class="auth-link" style="margin-top:20px">
-          Already have an account? <a routerLink="/login">Sign in</a>
+          Already have an account? <a routerLink="/auth/login">Sign in</a>
         </p>
 
       }
