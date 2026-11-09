@@ -1,7 +1,7 @@
 # API Contract
 
 > **Source**: Generated from `contracts/business.openapi.json` (downloaded from
-> `http://localhost:8080/v3/api-docs` on 2026-10-31).
+> `http://localhost:8080/v3/api-docs` on 2026-11-09).
 > SST (spring-security-tutorial) has been decommissioned. SBT (spring-boot-tutorial)
 > now owns all endpoints. Run `/contract-sync` once SBT is running to refresh the spec.
 
@@ -13,7 +13,8 @@
 |---|---|
 | Base URL (env) | `environment.apiUrl` = `/api/v1` |
 | Auth header | `Authorization: Bearer <token>` |
-| JWT lifetime | 1 hour, no refresh |
+| JWT lifetime | configurable; `expires_in` seconds returned in `AuthResponse` |
+| Refresh token | opaque string in `AuthResponse.refresh_token`; sent as `Authorization: Bearer <refresh>` to `POST /api/v1/auth/refresh-token` |
 | Response envelope | `ApiResponse<T>` |
 | Paginated lists | `data` is `PageResponse<T>` |
 | Errors | `success: false`, `message`, `data` is `ProblemDetail` |
@@ -65,18 +66,19 @@ interface JwtClaims {
 | GET | `/api/v1/auth/activate?token=` | -- | Public | Activates account; returns `UserResponse`; 400 on invalid/expired token |
 | POST | `/api/v1/auth/login` | `LoginRequest` | Public | Returns `AuthResponse`; 401 for wrong credentials, locked or disabled account |
 | POST | `/api/v1/auth/logout` | -- | Authenticated | Blacklists JWT server-side via `Authorization` header; call even if token is locally discarded |
+| POST | `/api/v1/auth/refresh-token` | -- | Authenticated (refresh) | Pass refresh token as `Authorization: Bearer <refresh>`; returns new `AuthResponse` |
 | GET | `/api/v1/auth/me` | -- | Authenticated | Returns `UserResponse` |
 | POST | `/api/v1/auth/forgot-password` | `ForgotPasswordRequest` | Public | Sends reset email; always 200 |
-| POST | `/api/v1/auth/reset-password` | `ResetPasswordRequest` | Public | Consumes token, sets new password; 400 on invalid/expired token |
+| POST | `/api/v1/auth/reset-password?token=` | `ResetPasswordRequest` | Public | Token is a **query param**; body has `new_password` + `confirm_password`; 400 on invalid/expired token |
 
 **Models:**
 
 ```ts
-interface RegisterRequest       { username: string; email: string; password: string }
+interface RegisterRequest       { first_name: string; last_name: string; username: string; email: string; password: string; confirm_password: string }
 interface LoginRequest          { email: string; password: string }
-interface AuthResponse          { token: string; token_type: string; username: string }
+interface AuthResponse          { access_token: string; token_type: string; refresh_token: string; expires_in: number }
 interface ForgotPasswordRequest { email: string }
-interface ResetPasswordRequest  { token: string; new_password: string }
+interface ResetPasswordRequest  { new_password: string; confirm_password: string }
 ```
 
 ---
@@ -92,11 +94,12 @@ interface ResetPasswordRequest  { token: string; new_password: string }
 | PATCH | `/api/v1/users/{id}/lock` | -- | Returns `UserResponse`; 422 if locking own account |
 | PATCH | `/api/v1/users/{id}/unlock` | -- | Returns `UserResponse` |
 | PUT | `/api/v1/users/{id}/roles` | `AssignRolesRequest` | Replaces the full role set; returns `UserResponse` |
+| DELETE | `/api/v1/users/{id}/roles/{roleId}` | -- | Removes a single role; returns `UserResponse` |
 
 **Models:**
 
 ```ts
-interface UserResponse        { id: number; username: string; email: string;
+interface UserResponse        { id: number; first_name: string; last_name: string; username: string; email: string;
                                 enabled: boolean; account_locked: boolean; roles: RoleResponse[] }
 interface UpdateProfileRequest { username?: string; email?: string }
 interface AssignRolesRequest   { role_ids: number[] }
@@ -240,7 +243,7 @@ interface OrderResponse { id: number; customer: CustomerResponse; product: Produ
 | `email` | Required, valid email format |
 | `username` | Required, 3-50 characters |
 | `password`, `new_password` | Required, at least 8 characters |
-| `token` (reset password) | Required |
+| `confirm_password` | Required, must match `password` / `new_password` |
 | `role_name` | Required (not blank) |
 | `resource`, `action` | Required (not blank) |
 | `category_name`, `product_name`, `address` | Required (not blank) |
@@ -248,4 +251,4 @@ interface OrderResponse { id: number; customer: CustomerResponse; product: Produ
 | `category_id`, `customer_id`, `product_id` | Required |
 | `telephone` | Required, matches `^\+?[0-9()\-\s]{7,20}$` |
 | `quantity` | Required, integer, greater than 0 |
-| `first_name`, `last_name` (customer) | Required (not blank) |
+| `first_name`, `last_name` (user, customer) | Required (not blank) |
