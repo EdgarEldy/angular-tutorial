@@ -41,7 +41,7 @@ describe('permissionGuard', () => {
   afterEach(() => localStorage.clear());
 
   it('returns true when the user holds the required permission', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:WRITE'], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:WRITE'], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['PRODUCT:WRITE']),
       { url: '/products/edit' } as RouterStateSnapshot,
@@ -50,7 +50,7 @@ describe('permissionGuard', () => {
   });
 
   it('is case-insensitive for permission matching', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:WRITE'], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:WRITE'], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['product:write']),
       { url: '/products/edit' } as RouterStateSnapshot,
@@ -59,7 +59,7 @@ describe('permissionGuard', () => {
   });
 
   it('redirects to /not-allowed when authenticated but permission is missing', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:READ'], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: [], permissions: ['PRODUCT:READ'], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['PRODUCT:WRITE']),
       { url: '/products/edit' } as RouterStateSnapshot,
