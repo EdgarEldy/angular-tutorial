@@ -68,12 +68,12 @@ describe('permissionGuard', () => {
     expect(result.toString()).toContain('/not-allowed');
   });
 
-  it('redirects to /login when unauthenticated', () => {
+  it('redirects to /auth/login when unauthenticated', () => {
     const result = executeGuard(
       makeRoute(['PRODUCT:WRITE']),
       { url: '/products/edit' } as RouterStateSnapshot,
     ) as UrlTree;
-    expect(result.toString()).toContain('/login');
+    expect(result.toString()).toContain('/auth/login');
     expect(result.queryParams['returnUrl']).toBe('/products/edit');
   });
 });

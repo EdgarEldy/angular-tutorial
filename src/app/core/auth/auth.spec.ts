@@ -294,7 +294,7 @@ describe('Auth', () => {
 
     const promise = firstValueFrom(service.activateAccount('my-token'));
     const req = httpCtrl.expectOne(
-      `${environment.apiUrl}/auth/activate?token=my-token`,
+      `${environment.apiUrl}/auth/activate-account?token=my-token`,
     );
     expect(req.request.method).toBe('GET');
     req.flush({ success: true, message: 'Activated', data: userStub, timestamp: '' });

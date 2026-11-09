@@ -113,7 +113,7 @@ export class ResetPasswordPage {
 
     this.auth.resetPassword(token, { new_password, confirm_password: confirmPassword }).subscribe({
       next: () => {
-        void this.router.navigate(['/login']);
+        void this.router.navigate(['/auth/login']);
       },
       error: (err: AppError) => {
         this.loading.set(false);
