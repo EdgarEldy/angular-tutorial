@@ -28,18 +28,20 @@ export interface RoleResponse {
 }
 
 /**
- * Full user representation returned by GET /api/v1/auth/me and PUT /api/v1/users/{id}.
+ * Full user representation returned by GET /api/v1/auth/me, GET /api/v1/users/{id}
+ * and all user-mutating endpoints (PUT, PATCH lock/unlock, PUT roles).
  *
  * Account status flags (enabled, account_locked) are read from this object on
  * the profile page. Role and permission lists for access decisions are read
  * from the JWT claims instead, since the token is always in sync with the
  * server at the time of login.
- *
- * The username field replaces the former first_name/last_name split: there is
- * now a single display identifier that is also the JWT subject (sub claim).
  */
 export interface UserResponse {
   id: number;
+  /** User's given name as entered during registration. */
+  first_name: string;
+  /** User's family name as entered during registration. */
+  last_name: string;
   /** Unique login name; also used as the JWT subject. */
   username: string;
   /** Email address registered for this account. */
