@@ -175,7 +175,7 @@ export class ShellComponent {
    */
   protected logout(): void {
     this.auth.logout().subscribe(() => {
-      void this.router.navigate(['/login']);
+      void this.router.navigate(['/auth/login']);
     });
   }
 

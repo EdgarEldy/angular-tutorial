@@ -29,9 +29,15 @@ export const routes: Routes = [
   { path: 'not-allowed', component: NotAllowedComponent },
   { path: '404', component: NotFoundComponent },
 
-  // Auth pages (outside shell -- no toolbar/sidenav for login, register, etc.)
+  // Redirect the bare root to the default authenticated page.
+  // Angular resolves this first (pathMatch: 'full' means exact '/' only),
+  // then the shell's authGuard decides: authenticated users land on
+  // /dashboard, unauthenticated users are redirected to /auth/login.
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+
+  // Auth pages under /auth/** (outside shell -- no toolbar/sidenav)
   {
-    path: '',
+    path: 'auth',
     loadChildren: () =>
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },

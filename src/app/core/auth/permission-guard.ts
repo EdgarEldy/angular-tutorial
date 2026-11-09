@@ -16,7 +16,7 @@ import { Auth } from './auth';
  * grants access so routes can list alternative permissions.
  *
  * Redirect rules:
- * - Not authenticated -> /login with returnUrl
+ * - Not authenticated -> /auth/login with returnUrl
  * - Authenticated but missing permission -> /not-allowed
  *
  * @param route - provides route.data['permissions'] with the required list
@@ -35,7 +35,7 @@ export const permissionGuard: CanActivateFn = (route, state) => {
   }
 
   if (!auth.isAuthenticated()) {
-    return router.createUrlTree(['/login'], {
+    return router.createUrlTree(['/auth/login'], {
       queryParams: { returnUrl: state.url },
     });
   }
