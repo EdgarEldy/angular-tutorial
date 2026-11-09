@@ -4,3 +4,15 @@
 mat-spinner {
   display: inline-flex;
 }
+
+// First name + last name side by side on screens wide enough to fit them.
+// Below 480 px they stack like every other field.
+.name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
