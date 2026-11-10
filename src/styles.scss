@@ -90,7 +90,8 @@
     --mat-paginator-container-background-color: var(--surface);
     --mat-paginator-container-text-color: var(--txt-1);
 
-    // mat.theme() sets dialog container to its light surface; re-point to ours.
+    // mat.theme() sets the dialog container to its own light surface color.
+    // Re-pointing to --surface keeps dialogs consistent with the dark background.
     --mdc-dialog-container-color: var(--surface);
     --mat-dialog-container-color: var(--surface);
     --mdc-dialog-subhead-color: var(--txt-1);
@@ -127,7 +128,8 @@
   --mat-paginator-container-background-color: var(--surface);
   --mat-paginator-container-text-color: var(--txt-1);
 
-  // mat.theme() sets dialog container to its light surface; re-point to ours.
+  // mat.theme() sets the dialog container to its own light surface color.
+  // Re-pointing to --surface keeps dialogs consistent with the dark background.
   --mdc-dialog-container-color: var(--surface);
   --mat-dialog-container-color: var(--surface);
   --mdc-dialog-subhead-color: var(--txt-1);
