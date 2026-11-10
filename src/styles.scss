@@ -484,6 +484,23 @@ body {
   font-size: 15px;
 }
 
+// ── mat-form-field outline fix inside dialogs ─────────────────────────────────
+// mat-dialog-content sets overflow-y: auto which creates a clip boundary at the
+// content top. When a mat-form-field is the first child and its label floats, the
+// label extends a few pixels above the field's box and gets clipped. padding-top
+// gives the floating label the room it needs inside the scrollable area.
+mat-dialog-content form {
+  padding-top: 4px;
+}
+
+// The MDC notched outline uses three segments: leading, notch, trailing. The
+// notch segment must have no right border so the gap at the top is unobstructed.
+// Without this, some global CSS configurations render a right border on the notch
+// that visually closes the gap and makes the floating label overlap the border.
+.mdc-notched-outline__notch {
+  border-right: none;
+}
+
 // ── Two-column grid (used inside dialogs) ─────────────────────────────────────
 .row2 {
   display: grid;
