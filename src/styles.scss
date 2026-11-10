@@ -499,12 +499,16 @@ body {
 // ── Material primary button: align with app accent color ──────────────────────
 // mat.theme() uses mat.$azure-palette as primary, which renders an azure/blue
 // button. The app design uses --accent (#6366f1 indigo) for all primary actions.
-// Overriding the MDC tokens here keeps Material buttons consistent with the rest
-// of the UI in both light and dark mode without replacing them with custom elements.
-.mat-mdc-raised-button.mat-primary {
+// The :not(:disabled) is required: Angular Material's internal SCSS generates its
+// own color token overrides on .mat-mdc-raised-button:not(:disabled).mat-primary,
+// so a plain .mat-primary selector loses the cascade in both light and dark mode.
+// background-color is added as a direct fallback for any M3 token-name variance
+// across Material versions.
+.mat-mdc-raised-button.mat-primary:not(:disabled) {
   --mdc-protected-button-container-color: var(--accent);
   --mdc-protected-button-label-text-color: #fff;
-  --mdc-protected-button-hover-state-layer-color: #fff;
+  background-color: var(--accent);
+  color: #fff;
 }
 
 .mat-mdc-unelevated-button.mat-primary,
