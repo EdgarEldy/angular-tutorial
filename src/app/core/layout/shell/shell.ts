@@ -192,9 +192,9 @@ export class ShellComponent {
 
   /** Admin-only items: rendered only when `auth.isAdmin()` is true. */
   protected readonly adminItems: NavItem[] = [
-    { label: 'Users',       icon: 'manage_accounts', route: '/users' },
-    { label: 'Roles',       icon: 'shield',          route: '/roles' },
-    { label: 'Permissions', icon: 'lock_open',       route: '/permissions' },
+    { label: 'Users',       icon: 'manage_accounts', route: '/admin/users' },
+    { label: 'Roles',       icon: 'shield',          route: '/admin/roles' },
+    { label: 'Permissions', icon: 'lock_open',       route: '/admin/permissions' },
   ];
 
   // ── Page title ─────────────────────────────────────────────────────────────
