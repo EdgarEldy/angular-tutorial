@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { DashboardPage } from './dashboard.page';
 
@@ -9,6 +10,8 @@ describe('DashboardPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
+      // RouterLink in the template requires the router to be available
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardPage);
