@@ -85,13 +85,16 @@ export const routes: Routes = [
           import('./features/not-found/not-found').then((m) => m.NotFoundComponent),
       },
 
-      // Administration area: ADMIN role required for all /admin/* routes
+      // Administration area: /users, /roles and /permissions require the ADMIN role.
+      // A pathless parent (path: '') adds no URL segment, so the frontend URLs
+      // mirror the backend resources, yet its guard and data still apply to
+      // every child: roleGuard is declared once for the three features.
+      // Angular only runs the guard when one of the children matches the URL.
       {
-        path: 'admin',
+        path: '',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
         children: [
-          { path: '', redirectTo: 'users', pathMatch: 'full' },
           {
             path: 'users',
             loadChildren: () =>
