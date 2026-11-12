@@ -90,6 +90,13 @@
     --mat-paginator-container-background-color: var(--surface);
     --mat-paginator-container-text-color: var(--txt-1);
 
+    // mat.theme() sets the dialog container to its own light surface color.
+    // Re-pointing to --surface keeps dialogs consistent with the dark background.
+    --mdc-dialog-container-color: var(--surface);
+    --mat-dialog-container-color: var(--surface);
+    --mdc-dialog-subhead-color: var(--txt-1);
+    --mdc-dialog-supporting-text-color: var(--txt-1);
+
     color-scheme: dark;
   }
 }
@@ -120,6 +127,13 @@
 
   --mat-paginator-container-background-color: var(--surface);
   --mat-paginator-container-text-color: var(--txt-1);
+
+  // mat.theme() sets the dialog container to its own light surface color.
+  // Re-pointing to --surface keeps dialogs consistent with the dark background.
+  --mdc-dialog-container-color: var(--surface);
+  --mat-dialog-container-color: var(--surface);
+  --mdc-dialog-subhead-color: var(--txt-1);
+  --mdc-dialog-supporting-text-color: var(--txt-1);
 
   color-scheme: dark;
 }
@@ -482,6 +496,45 @@ body {
   width: 100%;
   height: 42px;
   font-size: 15px;
+}
+
+// ── Material primary button: align with app accent color ──────────────────────
+// mat.theme() uses mat.$azure-palette as primary, which renders an azure/blue
+// button. The app design uses --accent (#6366f1 indigo) for all primary actions.
+// The :not(:disabled) is required: Angular Material's internal SCSS generates its
+// own color token overrides on .mat-mdc-raised-button:not(:disabled).mat-primary,
+// so a plain .mat-primary selector loses the cascade in both light and dark mode.
+// background-color is added as a direct fallback for any M3 token-name variance
+// across Material versions.
+.mat-mdc-raised-button.mat-primary:not(:disabled) {
+  --mdc-protected-button-container-color: var(--accent);
+  --mdc-protected-button-label-text-color: #fff;
+  background-color: var(--accent);
+  color: #fff;
+}
+
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-button.mat-primary {
+  --mdc-filled-button-container-color: var(--accent);
+  --mdc-filled-button-label-text-color: #fff;
+  --mdc-text-button-label-text-color: var(--accent);
+}
+
+// ── mat-form-field outline fix inside dialogs ─────────────────────────────────
+// mat-dialog-content sets overflow-y: auto which creates a clip boundary at the
+// content top. When a mat-form-field is the first child and its label floats, the
+// label extends a few pixels above the field's box and gets clipped. padding-top
+// gives the floating label the room it needs inside the scrollable area.
+mat-dialog-content form {
+  padding-top: 4px;
+}
+
+// The MDC notched outline uses three segments: leading, notch, trailing. The
+// notch segment must have no right border so the gap at the top is unobstructed.
+// Without this, some global CSS configurations render a right border on the notch
+// that visually closes the gap and makes the floating label overlap the border.
+.mdc-notched-outline__notch {
+  border-right: none;
 }
 
 // ── Two-column grid (used inside dialogs) ─────────────────────────────────────
