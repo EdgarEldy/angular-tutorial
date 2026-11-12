@@ -10,14 +10,14 @@ import { Auth } from './auth';
  * are synchronous, the guard returns a UrlTree immediately -- no observable or
  * promise is needed, which keeps navigation snappy.
  *
- * When the user is not authenticated, the guard redirects to /login and passes
- * the attempted URL as a returnUrl query parameter. After a successful login
- * the LoginPage reads that parameter and navigates back to the original page,
- * giving the user a seamless experience.
+ * When the user is not authenticated, the guard redirects to /auth/login and
+ * passes the attempted URL as a returnUrl query parameter. After a successful
+ * login the LoginPage reads that parameter and navigates back to the original
+ * page, giving the user a seamless experience.
  *
  * @param route - the activated route snapshot (unused; kept for CanActivateFn signature)
  * @param state - the router state snapshot, used to capture the attempted URL
- * @returns true to proceed, or a UrlTree to redirect to /login
+ * @returns true to proceed, or a UrlTree to redirect to /auth/login
  */
 export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(Auth);
@@ -28,7 +28,7 @@ export const authGuard: CanActivateFn = (_route, state) => {
   }
 
   // Preserve the attempted URL so login can redirect back after success
-  return router.createUrlTree(['/login'], {
+  return router.createUrlTree(['/auth/login'], {
     queryParams: { returnUrl: state.url },
   });
 };

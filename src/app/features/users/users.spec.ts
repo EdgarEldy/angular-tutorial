@@ -117,4 +117,13 @@ describe('Users', () => {
     const result = await promise;
     expect(result.roles).toEqual([]);
   });
+
+  it('removeRole calls DELETE /users/{id}/roles/{roleId} and returns UserResponse', async () => {
+    const promise = firstValueFrom(service.removeRole(1, 10));
+    const req = httpCtrl.expectOne(`${BASE}/1/roles/10`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ success: true, message: '', data: userStub, timestamp: '' });
+    const result = await promise;
+    expect(result.roles).toEqual([]);
+  });
 });

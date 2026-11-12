@@ -42,30 +42,30 @@ describe('roleGuard', () => {
   afterEach(() => localStorage.clear());
 
   it('returns true when the user holds the required role', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: ['ADMIN'], permissions: [], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['ADMIN'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['ADMIN']),
-      { url: '/admin' } as RouterStateSnapshot,
+      { url: '/users' } as RouterStateSnapshot,
     );
     expect(result).toBe(true);
   });
 
   it('redirects to /not-allowed when authenticated but role is missing', () => {
-    auth.storeToken(buildJwt({ sub: 'u@e.com', roles: ['USER'], permissions: [], exp: FUTURE_EXP, jti: 'x' }));
+    auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['USER'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['ADMIN']),
-      { url: '/admin' } as RouterStateSnapshot,
+      { url: '/users' } as RouterStateSnapshot,
     ) as UrlTree;
     expect(result).toBeInstanceOf(UrlTree);
     expect(result.toString()).toContain('/not-allowed');
   });
 
-  it('redirects to /login when unauthenticated', () => {
+  it('redirects to /auth/login when unauthenticated', () => {
     const result = executeGuard(
       makeRoute(['ADMIN']),
-      { url: '/admin' } as RouterStateSnapshot,
+      { url: '/users' } as RouterStateSnapshot,
     ) as UrlTree;
-    expect(result.toString()).toContain('/login');
-    expect(result.queryParams['returnUrl']).toBe('/admin');
+    expect(result.toString()).toContain('/auth/login');
+    expect(result.queryParams['returnUrl']).toBe('/users');
   });
 });

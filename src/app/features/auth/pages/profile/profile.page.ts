@@ -91,7 +91,7 @@ export class ProfilePage implements OnInit {
           // Session expired while the user was on the profile page; clear local
           // state and redirect to login so they can re-authenticate.
           this.auth.clearSession();
-          void this.router.navigate(['/login'], { queryParams: { returnUrl: '/profile' } });
+          void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/profile' } });
           return;
         }
 

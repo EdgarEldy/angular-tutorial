@@ -13,8 +13,11 @@ import { UpdateProfileRequest } from '../../features/auth/models/update-profile-
 import { UserResponse } from '../../features/auth/models/user-response.model';
 import { JwtClaims, decodeJwt, isTokenValid } from './jwt';
 
-/** localStorage key under which the JWT is persisted across page reloads. */
+/** localStorage key under which the JWT access token is persisted. */
 const TOKEN_KEY = 'access_token';
+
+/** localStorage key under which the refresh token is persisted. */
+const REFRESH_TOKEN_KEY = 'refresh_token';
 
 /**
  * Core session service for the application.
@@ -178,7 +181,7 @@ export class Auth {
       .post<ApiResponse<AuthResponse>>(`${this.base}/auth/login`, payload)
       .pipe(
         map((res) => res.data),
-        tap((authResponse) => this.storeToken(authResponse.token)),
+        tap((authResponse) => this.storeSession(authResponse)),
       );
   }
 
@@ -206,7 +209,7 @@ export class Auth {
   /**
    * Activates an account using the token from the email link.
    *
-   * The endpoint is GET /api/v1/auth/activate?token=... and returns the
+   * The endpoint is GET /api/v1/auth/activate-account?token=... and returns the
    * activated UserResponse on success. The activation page can use the
    * response to display the username and invite the user to log in.
    *
@@ -215,7 +218,7 @@ export class Auth {
    */
   activateAccount(token: string): Observable<UserResponse> {
     return this.http
-      .get<ApiResponse<UserResponse>>(`${this.base}/auth/activate`, {
+      .get<ApiResponse<UserResponse>>(`${this.base}/auth/activate-account`, {
         params: { token },
       })
       .pipe(map((res) => res.data));
@@ -240,16 +243,45 @@ export class Auth {
   /**
    * Sets a new password using the single-use reset token from the email link.
    *
+   * The token is passed as a query parameter (?token=) rather than in the
+   * body because the backend changed its signature to separate the opaque
+   * token (URL-safe, could be in a link) from the user-supplied passwords.
+   *
    * A 400 from this endpoint signals an invalid or expired token (not a
    * field-validation error) and is shown as a plain message on the page.
    *
-   * @param payload - reset token + new password
+   * @param token - single-use reset token from the ?token= query parameter
+   * @param payload - new password and its confirmation
    * @returns observable that completes on success
    */
-  resetPassword(payload: ResetPasswordRequest): Observable<void> {
+  resetPassword(token: string, payload: ResetPasswordRequest): Observable<void> {
     return this.http
-      .post<ApiResponse<void>>(`${this.base}/auth/reset-password`, payload)
+      .post<ApiResponse<void>>(`${this.base}/auth/reset-password`, payload, {
+        params: { token },
+      })
       .pipe(map(() => undefined));
+  }
+
+  /**
+   * Exchanges the refresh token for a new access token and refresh token pair.
+   *
+   * The refresh token is read from localStorage and sent in the Authorization
+   * header as "Bearer <refresh_token>". On success the session is updated with
+   * the new pair. This avoids asking the user to log in again when the access
+   * token expires.
+   *
+   * @returns observable that emits the new AuthResponse on success
+   */
+  refreshToken(): Observable<AuthResponse> {
+    const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
+    return this.http
+      .post<ApiResponse<AuthResponse>>(`${this.base}/auth/refresh-token`, null, {
+        headers: { Authorization: `Bearer ${refresh ?? ''}` },
+      })
+      .pipe(
+        map((res) => res.data),
+        tap((authResponse) => this.storeSession(authResponse)),
+      );
   }
 
   /**
@@ -316,27 +348,30 @@ export class Auth {
   // ---------------------------------------------------------------------------
 
   /**
-   * Persists the JWT to localStorage and updates the token signal.
+   * Persists the full AuthResponse (access token + refresh token) to localStorage
+   * and updates the token signal.
    *
-   * Writing to the signal triggers immediate synchronous re-evaluation of all
-   * computed signals (isAuthenticated, roles, etc.) because Angular's signal
-   * graph is synchronous.
+   * Both tokens are stored together so that refreshToken() can find the refresh
+   * token without needing to track it in component state. Writing to the access
+   * token signal triggers synchronous re-evaluation of all computed signals.
    *
-   * @param token - raw JWT string to persist
+   * @param authResponse - the response from login or refresh-token endpoints
    */
-  storeToken(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
-    this.token.set(token);
+  storeSession(authResponse: AuthResponse): void {
+    localStorage.setItem(TOKEN_KEY, authResponse.access_token);
+    localStorage.setItem(REFRESH_TOKEN_KEY, authResponse.refresh_token);
+    this.token.set(authResponse.access_token);
   }
 
   /**
-   * Removes the token from localStorage and resets all session signals to null.
+   * Removes both tokens from localStorage and resets all session signals to null.
    *
    * Called by logout() and by provideAppInitializer when the stored token is
    * found to be expired at startup.
    */
   clearSession(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
     this.token.set(null);
     this.currentUser.set(null);
   }

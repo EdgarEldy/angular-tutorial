@@ -8,14 +8,17 @@ import { Auth } from './auth';
  *
  * Required roles are declared on the route's data property:
  *
- *   { path: 'admin', canActivate: [roleGuard], data: { roles: ['ADMIN'] } }
+ *   { path: 'users', canActivate: [roleGuard], data: { roles: ['ADMIN'] } }
+ *
+ * The guard can also sit on a pathless parent route (path: '') so that one
+ * declaration protects several sibling routes without adding a URL segment.
  *
  * The guard checks each required role against the JWT claims via
  * AuthService.hasRole(), which is case-insensitive. If any role matches,
  * the user is allowed through.
  *
  * Redirect rules:
- * - Not authenticated -> /login with returnUrl (session expired or cold visit)
+ * - Not authenticated -> /auth/login with returnUrl (session expired or cold visit)
  * - Authenticated but missing role -> /not-allowed (clear access denial)
  *
  * @param route - provides route.data['roles'] with the required role list
@@ -35,7 +38,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   if (!auth.isAuthenticated()) {
     // Not logged in -- redirect to login with return URL
-    return router.createUrlTree(['/login'], {
+    return router.createUrlTree(['/auth/login'], {
       queryParams: { returnUrl: state.url },
     });
   }
