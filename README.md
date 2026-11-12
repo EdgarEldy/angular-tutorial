@@ -449,17 +449,17 @@ Depends on `feature/core-architecture`.
 
 ## feature/rbac
 
-Depends on `feature/auth`. Everything here is reserved to the `ADMIN` role: routes under `/admin` use `roleGuard` with `data: { roles: ['ADMIN'] }`.
+Depends on `feature/auth`. Everything here is reserved to the `ADMIN` role: the `/users`, `/roles` and `/permissions` routes are grouped under a pathless parent route that uses `roleGuard` with `data: { roles: ['ADMIN'] }`. The frontend URLs mirror the backend resources, so there is no `/admin` prefix.
 
 ### Screens
 
 | Route               | Operations                                                                                       | Screens                                                                                                                              |
 |---------------------|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `/admin/users`      | `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `PATCH /users/{id}/lock`, `PATCH /users/{id}/unlock`, `DELETE /users/{id}` | Paginated table (name, email, enabled, locked), edit dialog (first and last name), lock/unlock and delete with confirmation. |
+| `/users`            | `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `PATCH /users/{id}/lock`, `PATCH /users/{id}/unlock`, `DELETE /users/{id}` | Paginated table (name, email, enabled, locked), edit dialog (first and last name), lock/unlock and delete with confirmation. |
 | User roles          | `GET /users/{id}`, `GET /roles`, `POST` and `DELETE /users/{userId}/roles/{roleId}`              | A "Manage roles" dialog opened from the user row: the user's roles as removable chips (with their permissions on hover or in an expandable list) and an "add role" select listing the roles not yet assigned. |
-| `/admin/roles`      | `GET /roles`, `POST /roles`, `PUT /roles/{id}`, `DELETE /roles/{id}`                             | Table of roles with their permissions, create/edit dialog (`role_name`), delete with confirmation.                                   |
+| `/roles`            | `GET /roles`, `POST /roles`, `PUT /roles/{id}`, `DELETE /roles/{id}`                             | Table of roles with their permissions, create/edit dialog (`role_name`), delete with confirmation.                                   |
 | Role permissions    | `GET /permissions`, `POST` and `DELETE /roles/{roleId}/permissions/{permissionId}`               | A "Manage permissions" dialog opened from the role row: assigned permissions as removable chips and an "add permission" select.      |
-| `/admin/permissions`| `GET /permissions`, `POST /permissions`, `DELETE /permissions/{id}`                              | Table (`resource`, `action`, and the combined `RESOURCE:ACTION`), create dialog, delete with confirmation.                           |
+| `/permissions`      | `GET /permissions`, `POST /permissions`, `DELETE /permissions/{id}`                              | Table (`resource`, `action`, and the combined `RESOURCE:ACTION`), create dialog, delete with confirmation.                           |
 
 There is no "create user" screen: accounts are created through registration (an administrator manages them afterwards).
 
@@ -471,7 +471,7 @@ There is no "create user" screen: accounts are created through registration (an 
 - [ ] An administrator cannot lock or delete **their own** account from the UI: disable those actions on the current user's row (the backend also refuses locking one's own account with a `422`)
 - [ ] Deleting a role or permission that is still assigned returns a `422`: show the backend message and keep the row
 - [ ] Role names and permission `resource` / `action` are free text in the dialogs; show a hint about the convention (`ADMIN`, `PRODUCT` + `READ` giving `PRODUCT:READ`)
-- [ ] Tests: assignment dialogs update from the returned entity, own-account protection, `422` display, non-admin denied on every `/admin` route
+- [ ] Tests: assignment dialogs update from the returned entity, own-account protection, `422` display, non-admin denied on the `/users`, `/roles` and `/permissions` routes
 
 ## feature/categories
 
