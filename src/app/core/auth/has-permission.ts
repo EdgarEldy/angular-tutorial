@@ -63,7 +63,7 @@ export class HasPermissionDirective {
  * holds the specified role.
  *
  * Usage:
- *   <a *appHasRole="'ADMIN'" routerLink="/admin">Admin</a>
+ *   <a *appHasRole="'ADMIN'" routerLink="/users">Users</a>
  *
  * Shares the same pattern as HasPermissionDirective but checks roles instead
  * of permissions. Both directives are defined in this file because they are
