@@ -138,9 +138,9 @@ export class ShellComponent {
 
   /** Admin-only items shown in the "Administration" section of the sidebar. */
   protected readonly adminItems: NavItem[] = [
-    { label: 'Users',       icon: 'manage_accounts', route: '/admin/users' },
-    { label: 'Roles',       icon: 'shield',          route: '/admin/roles' },
-    { label: 'Permissions', icon: 'lock_open',       route: '/admin/permissions' },
+    { label: 'Users',       icon: 'manage_accounts', route: '/users' },
+    { label: 'Roles',       icon: 'shield',          route: '/roles' },
+    { label: 'Permissions', icon: 'lock_open',       route: '/permissions' },
   ];
 
   // ── Page title ─────────────────────────────────────────────────────────────
