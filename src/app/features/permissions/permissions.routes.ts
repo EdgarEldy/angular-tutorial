@@ -3,8 +3,8 @@ import { Routes } from '@angular/router';
 /**
  * Routes for the permissions administration feature.
  *
- * Mounted under /admin/permissions inside the shell, behind roleGuard with
- * data: { roles: ['ADMIN'] } set on the parent route in app.routes.ts.
+ * Mounted under /permissions inside the shell, behind roleGuard with
+ * data: { roles: ['ADMIN'] } set on the pathless parent route in app.routes.ts.
  */
 export const PERMISSIONS_ROUTES: Routes = [
   {
