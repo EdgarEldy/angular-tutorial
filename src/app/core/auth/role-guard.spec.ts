@@ -45,7 +45,7 @@ describe('roleGuard', () => {
     auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['ADMIN'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['ADMIN']),
-      { url: '/admin' } as RouterStateSnapshot,
+      { url: '/users' } as RouterStateSnapshot,
     );
     expect(result).toBe(true);
   });
@@ -54,7 +54,7 @@ describe('roleGuard', () => {
     auth.storeSession({ access_token: buildJwt({ sub: 'u@e.com', roles: ['USER'], permissions: [], exp: FUTURE_EXP, jti: 'x' }), token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
     const result = executeGuard(
       makeRoute(['ADMIN']),
-      { url: '/admin' } as RouterStateSnapshot,
+      { url: '/users' } as RouterStateSnapshot,
     ) as UrlTree;
     expect(result).toBeInstanceOf(UrlTree);
     expect(result.toString()).toContain('/not-allowed');
@@ -63,9 +63,9 @@ describe('roleGuard', () => {
   it('redirects to /auth/login when unauthenticated', () => {
     const result = executeGuard(
       makeRoute(['ADMIN']),
-      { url: '/admin' } as RouterStateSnapshot,
+      { url: '/users' } as RouterStateSnapshot,
     ) as UrlTree;
     expect(result.toString()).toContain('/auth/login');
-    expect(result.queryParams['returnUrl']).toBe('/admin');
+    expect(result.queryParams['returnUrl']).toBe('/users');
   });
 });
