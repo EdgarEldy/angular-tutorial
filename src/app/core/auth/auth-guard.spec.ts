@@ -31,7 +31,7 @@ describe('authGuard', () => {
     // Build a token that expires in the future
     const payload = { sub: 'u@e.com', roles: [], permissions: [], exp: Math.floor(Date.now() / 1000) + 3600, jti: 'x' };
     const token = `h.${btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}.s`;
-    auth.storeToken(token);
+    auth.storeSession({ access_token: token, token_type: 'Bearer', refresh_token: 'dummy', expires_in: 3600 });
 
     const result = executeGuard(
       {} as ActivatedRouteSnapshot,
@@ -41,14 +41,14 @@ describe('authGuard', () => {
     expect(result).toBe(true);
   });
 
-  it('redirects to /login with returnUrl when unauthenticated', () => {
+  it('redirects to /auth/login with returnUrl when unauthenticated', () => {
     const result = executeGuard(
       {} as ActivatedRouteSnapshot,
       { url: '/profile' } as RouterStateSnapshot,
     ) as UrlTree;
 
     expect(result).toBeInstanceOf(UrlTree);
-    expect(result.toString()).toContain('/login');
+    expect(result.toString()).toContain('/auth/login');
     expect(result.queryParams['returnUrl']).toBe('/profile');
   });
 });

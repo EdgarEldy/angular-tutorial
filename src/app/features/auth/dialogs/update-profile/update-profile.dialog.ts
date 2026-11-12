@@ -108,7 +108,7 @@ export class UpdateProfileDialog {
           // is not left open after navigation.
           this.dialogRef.close();
           this.auth.clearSession();
-          void this.router.navigate(['/login'], { queryParams: { returnUrl: '/profile' } });
+          void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/profile' } });
           return;
         }
 

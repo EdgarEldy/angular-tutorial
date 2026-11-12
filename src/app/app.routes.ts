@@ -29,9 +29,15 @@ export const routes: Routes = [
   { path: 'not-allowed', component: NotAllowedComponent },
   { path: '404', component: NotFoundComponent },
 
-  // Auth pages (outside shell -- no toolbar/sidenav for login, register, etc.)
+  // Redirect the bare root to the default authenticated page.
+  // Angular resolves this first (pathMatch: 'full' means exact '/' only),
+  // then the shell's authGuard decides: authenticated users land on
+  // /dashboard, unauthenticated users are redirected to /auth/login.
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+
+  // Auth pages under /auth/** (outside shell -- no toolbar/sidenav)
   {
-    path: '',
+    path: 'auth',
     loadChildren: () =>
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
@@ -70,12 +76,12 @@ export const routes: Routes = [
       // Default redirect
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
-      // Dashboard stub (feature/dashboard branch)
+      // Dashboard
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./features/not-found/not-found').then(
-            (m) => m.NotFoundComponent,
+          import('./features/dashboard/pages/dashboard/dashboard.page').then(
+            (m) => m.DashboardPage,
           ),
       },
 
@@ -97,13 +103,16 @@ export const routes: Routes = [
           ),
       },
 
-      // Administration area: ADMIN role required for all /admin/* routes
+      // Administration area: /users, /roles and /permissions require the ADMIN role.
+      // A pathless parent (path: '') adds no URL segment, so the frontend URLs
+      // mirror the backend resources, yet its guard and data still apply to
+      // every child: roleGuard is declared once for the three features.
+      // Angular only runs the guard when one of the children matches the URL.
       {
-        path: 'admin',
+        path: '',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
         children: [
-          { path: '', redirectTo: 'users', pathMatch: 'full' },
           {
             path: 'users',
             loadChildren: () =>

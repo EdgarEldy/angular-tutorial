@@ -3,8 +3,8 @@ import { Routes } from '@angular/router';
 /**
  * Routes for the roles administration feature.
  *
- * Mounted under /admin/roles inside the shell, behind roleGuard with
- * data: { roles: ['ADMIN'] } set on the parent route in app.routes.ts.
+ * Mounted under /roles inside the shell, behind roleGuard with
+ * data: { roles: ['ADMIN'] } set on the pathless parent route in app.routes.ts.
  */
 export const ROLES_ROUTES: Routes = [
   {
