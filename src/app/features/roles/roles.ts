@@ -88,40 +88,6 @@ export class Roles {
   }
 
   /**
-   * Assigns a permission to a role.
-   *
-   * @param roleId - role id
-   * @param permissionId - permission id to add
-   * @returns Observable of the updated RoleResponse (server-authoritative state)
-   */
-  addPermission(roleId: number, permissionId: number): Observable<RoleResponse> {
-    return this.http
-      .post<ApiResponse<RoleResponse>>(
-        `${this.base}/${roleId}/permissions/${permissionId}`,
-        {},
-      )
-      .pipe(map((res) => res.data));
-  }
-
-  /**
-   * Removes a permission from a role.
-   *
-   * @param roleId - role id
-   * @param permissionId - permission id to remove
-   * @returns Observable of the updated RoleResponse (server-authoritative state)
-   */
-  removePermission(
-    roleId: number,
-    permissionId: number,
-  ): Observable<RoleResponse> {
-    return this.http
-      .delete<ApiResponse<RoleResponse>>(
-        `${this.base}/${roleId}/permissions/${permissionId}`,
-      )
-      .pipe(map((res) => res.data));
-  }
-
-  /**
    * Adds and removes permissions on a role in a single request.
    *
    * PATCH /roles/{roleId}/permissions applies a diff: the caller sends only
