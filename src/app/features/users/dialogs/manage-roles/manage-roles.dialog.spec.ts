@@ -18,9 +18,8 @@ const userStub = {
 const userWithRole = { ...userStub, roles: [roleStub] };
 
 const usersMock = {
-  getUser: () => of(userStub),
-  // assignRoles replaces the old addRole/removeRole pair
-  assignRoles: () => of(userWithRole),
+  getUser: vi.fn(() => of(userStub)),
+  updateRoles: vi.fn(() => of(userWithRole)),
 };
 
 const rolesMock = {
@@ -35,6 +34,10 @@ describe('ManageRolesDialog', () => {
 
   beforeEach(async () => {
     dialogRefMock.close.mockClear();
+    usersMock.getUser.mockClear();
+    usersMock.updateRoles.mockClear();
+    usersMock.getUser.mockReturnValue(of(userStub));
+    usersMock.updateRoles.mockReturnValue(of(userWithRole));
 
     await TestBed.configureTestingModule({
       imports: [ManageRolesDialog],
@@ -55,50 +58,81 @@ describe('ManageRolesDialog', () => {
     expect(component).toBeTruthy();
   });
 
-  it('fetches full user detail on init', async () => {
+  it('fetches full user detail on init and loads all roles', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component['user']().email).toBe('jane@example.com');
+    expect(component['allRoles']()).toEqual([roleStub]);
   });
 
-  it('addRole calls assignRoles with current roles + selected id', async () => {
+  it('starts with no pre-checks when user has no roles', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
-
-    const spy = vi.spyOn(usersMock, 'assignRoles').mockReturnValueOnce(of(userWithRole));
-    component['selectedRoleId'] = roleStub.id;
-    (component as unknown as { addRole: () => void }).addRole();
-    await fixture.whenStable();
-
-    expect(spy).toHaveBeenCalledWith(userStub.id, [roleStub.id]);
-    expect(component['user']().roles).toEqual([roleStub]);
+    expect(component['checkedIds']().size).toBe(0);
   });
 
-  it('removeRole calls assignRoles with current roles minus removed id', async () => {
-    component['user'].set(userWithRole);
-    const spy = vi.spyOn(usersMock, 'assignRoles').mockReturnValueOnce(of(userStub));
-    (component as unknown as { removeRole: (r: typeof roleStub) => void })
-      .removeRole(roleStub);
+  it('toggle adds an unchecked role to checkedIds', async () => {
+    fixture.detectChanges();
     await fixture.whenStable();
-
-    expect(spy).toHaveBeenCalledWith(userStub.id, []);
-    expect(component['user']().roles).toEqual([]);
+    (component as unknown as { toggle: (id: number) => void }).toggle(roleStub.id);
+    expect(component['checkedIds']().has(roleStub.id)).toBe(true);
   });
 
-  it('close emits final user state', () => {
-    component['user'].set(userWithRole);
-    (component as unknown as { close: () => void }).close();
+  it('save calls updateRoles with computed diff and closes on success', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    // roleStub.id was initially unchecked; toggling adds it
+    (component as unknown as { toggle: (id: number) => void }).toggle(roleStub.id);
+    (component as unknown as { save: () => void }).save();
+    await fixture.whenStable();
+
+    expect(usersMock.updateRoles).toHaveBeenCalledWith(userStub.id, {
+      add: [roleStub.id],
+      remove: [],
+    });
     expect(dialogRefMock.close).toHaveBeenCalledWith(userWithRole);
   });
 
-  it('shows error notification when assignRoles fails on add', async () => {
-    const error: AppError = { kind: 'SERVER', status: 500, message: 'Error' };
-    vi.spyOn(usersMock, 'assignRoles').mockReturnValueOnce(throwError(() => error));
+  it('save closes without a server call when nothing changed', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    // No toggles -- the selection matches the initial state (both empty)
+    (component as unknown as { save: () => void }).save();
+    await fixture.whenStable();
+
+    expect(usersMock.updateRoles).not.toHaveBeenCalled();
+    expect(dialogRefMock.close).toHaveBeenCalledWith(userStub);
+  });
+
+  it('cancel closes the dialog without a server call', () => {
+    (component as unknown as { cancel: () => void }).cancel();
+    expect(usersMock.updateRoles).not.toHaveBeenCalled();
+    expect(dialogRefMock.close).toHaveBeenCalledWith({ ...userStub, roles: [] });
+  });
+
+  it('shows business error inline and keeps dialog open on BUSINESS_RULE (422)', async () => {
+    const error: AppError = { kind: 'BUSINESS_RULE', status: 422, message: 'Cannot assign' };
+    usersMock.updateRoles.mockReturnValueOnce(throwError(() => error));
 
     fixture.detectChanges();
     await fixture.whenStable();
-    component['selectedRoleId'] = roleStub.id;
-    (component as unknown as { addRole: () => void }).addRole();
+    (component as unknown as { toggle: (id: number) => void }).toggle(roleStub.id);
+    (component as unknown as { save: () => void }).save();
+    await fixture.whenStable();
+
+    expect(dialogRefMock.close).not.toHaveBeenCalled();
+    expect(component['businessError']()).toBe('Cannot assign');
+    expect(component['saving']()).toBe(false);
+  });
+
+  it('resets saving flag on non-business error', async () => {
+    const error: AppError = { kind: 'SERVER', status: 500, message: 'Error' };
+    usersMock.updateRoles.mockReturnValueOnce(throwError(() => error));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    (component as unknown as { toggle: (id: number) => void }).toggle(roleStub.id);
+    (component as unknown as { save: () => void }).save();
     await fixture.whenStable();
 
     expect(component['saving']()).toBe(false);

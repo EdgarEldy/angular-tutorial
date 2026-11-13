@@ -456,9 +456,9 @@ Depends on `feature/auth`. Everything here is reserved to the `ADMIN` role: the 
 | Route               | Operations                                                                                       | Screens                                                                                                                              |
 |---------------------|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | `/users`            | `GET /users`, `GET /users/{id}`, `PUT /users/{id}`, `PATCH /users/{id}/lock`, `PATCH /users/{id}/unlock`, `DELETE /users/{id}` | Paginated table (username, email, enabled, locked), edit dialog (username and email), lock/unlock and delete with confirmation. |
-| User roles          | `GET /users/{id}`, `GET /roles`, `PUT /users/{id}/roles` (assign all at once)                    | A "Manage roles" dialog opened from the user row: the user's current roles as chips and a multi-select to reassign them all in one PUT call. |
+| User roles          | `GET /users/{id}`, `GET /roles`, `PATCH /users/{id}/roles`                                       | A "Manage roles" dialog opened from the user row: all roles as checkboxes, pre-checked for currently assigned ones; Save sends one PATCH with the diff (add / remove). |
 | `/roles`            | `GET /roles`, `POST /roles`, `PUT /roles/{id}`, `DELETE /roles/{id}`                             | Table of roles with their permissions, create/edit dialog (`role_name`), delete with confirmation.                                   |
-| Role permissions    | `GET /permissions`, `POST` and `DELETE /roles/{roleId}/permissions/{permissionId}`               | A "Manage permissions" dialog opened from the role row: assigned permissions as removable chips and an "add permission" select.      |
+| Role permissions    | `GET /permissions`, `PATCH /roles/{roleId}/permissions`                                          | A "Manage permissions" dialog opened from the role row: all permissions as checkboxes, pre-checked for those already on the role; Save sends one PATCH with the diff (add / remove). |
 | `/permissions`      | `GET /permissions`, `POST /permissions`, `DELETE /permissions/{id}`                              | Table (`resource`, `action`, and the combined `RESOURCE:ACTION`), create dialog, delete with confirmation.                           |
 
 There is no "create user" screen: accounts are created through registration (an administrator manages them afterwards).
@@ -466,8 +466,8 @@ There is no "create user" screen: accounts are created through registration (an 
 ### Tasks
 
 - [x] The three features `users`, `roles` and `permissions` (service, models, routes, pages, dialogs); `roles` and `users` use the `roles` and `permissions` services for their assignment dialogs
-- [x] The user list does not show roles (the list endpoint returns none); the "Manage roles" dialog loads `GET /users/{id}` and updates its chips from the `UserResponse` returned by every assign or remove call
-- [x] The "Manage permissions" dialog updates its chips from the `RoleResponse` returned by every assign or remove call, and the roles table reflects the change on close
+- [x] The user list does not show roles (the list endpoint returns none); the "Manage roles" dialog loads `GET /users/{id}` to pre-check assigned roles, diffs the selection on Save, and calls `PATCH /users/{id}/roles` once
+- [x] The "Manage permissions" dialog loads all permissions as checkboxes, pre-checks those already on the role, diffs the selection on Save, and calls `PATCH /roles/{roleId}/permissions` once; the roles table reflects the change on close
 - [x] An administrator cannot lock or delete **their own** account from the UI: disable those actions on the current user's row (the backend also refuses locking one's own account with a `422`)
 - [x] Deleting a role or permission that is still assigned returns a `422`: show the backend message and keep the row
 - [x] Role names and permission `resource` / `action` are free text in the dialogs; show a hint about the convention (`ADMIN`, `PRODUCT` + `READ` giving `PRODUCT:READ`)

@@ -10,12 +10,9 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FormsModule } from '@angular/forms';
 
 import { Roles } from '../../roles';
 import { Permissions } from '../../../permissions/permissions';
@@ -32,25 +29,24 @@ export interface ManagePermissionsDialogData {
 /**
  * Dialog for assigning or removing permissions from a role.
  *
- * On open it loads all permissions from the backend, subtracts those already
- * on the role, and shows the remainder in an "Add permission" select. Each
- * removal chip calls DELETE /{roleId}/permissions/{permissionId} and updates
- * the role state from the returned RoleResponse.
+ * On open it loads all permissions from the backend and pre-checks those
+ * already on the role. On submit it diffs the initial checked set against
+ * the final one and calls PATCH /roles/{roleId}/permissions once with
+ * { add: newIds, remove: removedIds }. The diff approach means a concurrent
+ * administrator's change to an unrelated permission is not overwritten.
  *
- * When the dialog is closed via the Close button, afterClosed() emits the
- * final RoleResponse so the parent page can update its table row.
+ * On success the dialog closes and emits the updated RoleResponse. On a
+ * BUSINESS_RULE error (422) the dialog stays open and shows the backend
+ * message; all other errors are forwarded to the global notification service.
  */
 @Component({
   selector: 'app-manage-permissions-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FormsModule,
     MatDialogModule,
-    MatChipsModule,
-    MatSelectModule,
+    MatCheckboxModule,
     MatButtonModule,
-    MatIconModule,
     MatProgressSpinnerModule,
   ],
   templateUrl: './manage-permissions.dialog.html',
@@ -65,23 +61,39 @@ export class ManagePermissionsDialog implements OnInit {
   private readonly dialogRef =
     inject<MatDialogRef<ManagePermissionsDialog, RoleResponse>>(MatDialogRef);
 
-  /** Current state of the role (refreshed after each assign/remove). */
+  /** Current role (kept to emit on cancel or on no-change save). */
   protected readonly role = signal<RoleResponse>({ ...this.data.role });
 
   /** All permissions available in the system. */
   protected readonly allPermissions = signal<PermissionResponse[]>([]);
 
-  /** Currently selected permission id in the add-select (ngModel). */
-  protected selectedPermissionId: number | null = null;
+  /**
+   * Set of permission ids currently checked in the UI.
+   *
+   * Signals holding mutable objects (Set, Map) must be replaced -- not
+   * mutated in place -- so Angular detects the change and re-renders.
+   */
+  protected readonly checkedIds = signal(new Set<number>());
 
   protected readonly loadingAll = signal(true);
   protected readonly saving = signal(false);
+
+  /** Non-null when a 422 response keeps the dialog open with a message. */
+  protected readonly businessError = signal<string | null>(null);
+
+  /** Snapshot of assigned permission ids taken on load; used to compute the diff. */
+  private initialIds = new Set<number>();
 
   /** @inheritdoc */
   ngOnInit(): void {
     this.permissionsService.getPermissions().subscribe({
       next: (list) => {
         this.allPermissions.set(list);
+        // Pre-check permissions already assigned to this role
+        const assigned = new Set(this.role().permissions.map((p) => p.id));
+        this.initialIds = new Set(assigned);
+        // Replace the signal value -- never mutate a Set held in a signal
+        this.checkedIds.set(assigned);
         this.loadingAll.set(false);
       },
       error: () => {
@@ -91,65 +103,73 @@ export class ManagePermissionsDialog implements OnInit {
   }
 
   /**
-   * Returns permissions not yet assigned to the current role.
+   * Returns true when the given permission id is currently checked.
    *
-   * Used to populate the "Add permission" select so already-assigned
-   * permissions are not shown as options.
+   * @param id - permission id to check
+   * @returns whether the checkbox is checked
    */
-  protected get availablePermissions(): PermissionResponse[] {
-    const assigned = new Set(this.role().permissions.map((p) => p.id));
-    return this.allPermissions().filter((p) => !assigned.has(p.id));
+  protected isChecked(id: number): boolean {
+    return this.checkedIds().has(id);
   }
 
   /**
-   * Assigns the selected permission to the role and refreshes from the server.
+   * Toggles a permission's checked state.
+   *
+   * Creates a new Set so the signal detects the change.
+   *
+   * @param id - permission id to toggle
    */
-  protected addPermission(): void {
-    if (this.selectedPermissionId === null) return;
+  protected toggle(id: number): void {
+    const next = new Set(this.checkedIds());
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    this.checkedIds.set(next);
+    // Clear any previous business error when the user changes their selection
+    this.businessError.set(null);
+  }
+
+  /**
+   * Diffs initial vs final selection and calls PATCH /roles/{id}/permissions.
+   *
+   * If nothing changed, closes immediately without a network call. On
+   * BUSINESS_RULE the dialog stays open and shows the backend message.
+   */
+  protected save(): void {
+    const initial = this.initialIds;
+    const current = this.checkedIds();
+    const add = [...current].filter((id) => !initial.has(id));
+    const remove = [...initial].filter((id) => !current.has(id));
+
+    // No change: close without a server call
+    if (!add.length && !remove.length) {
+      this.dialogRef.close(this.role());
+      return;
+    }
 
     this.saving.set(true);
-
-    this.rolesService
-      .addPermission(this.role().id, this.selectedPermissionId)
-      .subscribe({
-        next: (updated) => {
-          this.role.set(updated);
-          this.selectedPermissionId = null;
-          this.saving.set(false);
-        },
-        error: (err: AppError) => {
-          this.saving.set(false);
+    this.rolesService.updatePermissions(this.role().id, { add, remove }).subscribe({
+      next: (updated) => {
+        this.dialogRef.close(updated);
+      },
+      error: (err: AppError) => {
+        this.saving.set(false);
+        if (err.kind === 'BUSINESS_RULE') {
+          // Keep dialog open: show the backend message inline
+          this.businessError.set(err.message);
+        } else {
           this.notification.error(err.message);
-        },
-      });
+        }
+      },
+    });
   }
 
   /**
-   * Removes a permission from the role and refreshes from the server.
-   *
-   * @param permission - the permission chip that was removed
+   * Closes the dialog without saving, emitting the original role state.
    */
-  protected removePermission(permission: PermissionResponse): void {
-    this.saving.set(true);
-
-    this.rolesService
-      .removePermission(this.role().id, permission.id)
-      .subscribe({
-        next: (updated) => {
-          this.role.set(updated);
-          this.saving.set(false);
-        },
-        error: (err: AppError) => {
-          this.saving.set(false);
-          this.notification.error(err.message);
-        },
-      });
-  }
-
-  /**
-   * Closes the dialog and emits the final role state to the parent page.
-   */
-  protected close(): void {
+  protected cancel(): void {
     this.dialogRef.close(this.role());
   }
 }
