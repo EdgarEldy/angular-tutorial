@@ -180,12 +180,17 @@ interface ProductResponse { id: number; product_name: string; unit_price: number
 
 // Business: customers
 interface CustomerRequest  { first_name: string; last_name: string; telephone: string; email: string; address: string }
+interface OrderedProductResponse { order_id: number; product_id: number; product_name: string;
+                                   unit_price: number; quantity: number; total: number }  // one entry per order line
 interface CustomerResponse { id: number; first_name: string; last_name: string; telephone: string;
-                             email: string; address: string; products: ProductResponse[] }   // products on the detail endpoint only
+                             email: string; address: string; products: OrderedProductResponse[]; total: number }  // products on detail only
 
 // Business: orders
 interface OrderRequest  { customer_id: number; product_id: number; quantity: number }   // quantity >= 1
-interface OrderResponse { id: number; customer: CustomerResponse; product: ProductResponse; quantity: number; total: number }
+interface OrderCustomerResponse  { id: number; first_name: string; last_name: string; telephone: string;
+                                   email: string; address: string }  // no products, no total
+interface CustomerOrdersResponse { customer: OrderCustomerResponse; products: OrderedProductResponse[]; total: number }
+interface OrderResponse { id: number; customer: OrderCustomerResponse; product: ProductResponse; quantity: number; total: number }
 ```
 
 Validation rules enforced by the backends (mirror them as UX validation in the forms; the backends stay the authority):
@@ -533,6 +538,7 @@ Depends on `feature/core-architecture`.
 - [x] Validation in the dialog matching the backend (required fields, valid email, telephone pattern)
 - [x] A duplicate email or any other `422` shows the backend message in the dialog
 - [x] Handle the backend rejecting a deletion (for example a customer with orders) by showing its message
+- [x] The detail page shows `CustomerResponse.products` as `OrderedProductResponse[]` (one row per order line, keyed by `order_id`); the info card includes the customer's overall `total`
 - [x] Tests
 
 ## feature/orders
