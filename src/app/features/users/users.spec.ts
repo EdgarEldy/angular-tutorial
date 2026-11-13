@@ -126,4 +126,28 @@ describe('Users', () => {
     const result = await promise;
     expect(result.roles).toEqual([]);
   });
+
+  it('updateRoles calls PATCH /users/{id}/roles with add and remove', async () => {
+    const userWithRole = { ...userStub, roles: [roleStub] };
+    const promise = firstValueFrom(
+      service.updateRoles(1, { add: [10], remove: [11] }),
+    );
+    const req = httpCtrl.expectOne(`${BASE}/1/roles`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ add: [10], remove: [11] });
+    req.flush({ success: true, message: '', data: userWithRole, timestamp: '' });
+    const result = await promise;
+    expect(result.roles).toEqual([roleStub]);
+  });
+
+  it('updateRoles omits an empty list from the body', async () => {
+    const promise = firstValueFrom(
+      service.updateRoles(1, { add: [10], remove: [] }),
+    );
+    const req = httpCtrl.expectOne(`${BASE}/1/roles`);
+    // An empty remove list is dropped: only the non-empty side of the diff is sent
+    expect(req.request.body).toEqual({ add: [10] });
+    req.flush({ success: true, message: '', data: userStub, timestamp: '' });
+    await promise;
+  });
 });
