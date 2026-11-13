@@ -88,4 +88,27 @@ describe('Roles', () => {
     const result = await promise;
     expect(result.permissions).toEqual([]);
   });
+
+  it('updatePermissions calls PATCH /{roleId}/permissions with add and remove', async () => {
+    const promise = firstValueFrom(
+      service.updatePermissions(1, { add: [2], remove: [3] }),
+    );
+    const req = httpCtrl.expectOne(`${BASE}/1/permissions`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ add: [2], remove: [3] });
+    req.flush({ success: true, message: '', data: roleWithPerm, timestamp: '' });
+    const result = await promise;
+    expect(result.permissions).toEqual([permStub]);
+  });
+
+  it('updatePermissions omits an empty list from the body', async () => {
+    const promise = firstValueFrom(
+      service.updatePermissions(1, { add: [], remove: [2] }),
+    );
+    const req = httpCtrl.expectOne(`${BASE}/1/permissions`);
+    // An empty add list is dropped: only the non-empty side of the diff is sent
+    expect(req.request.body).toEqual({ remove: [2] });
+    req.flush({ success: true, message: '', data: roleStub, timestamp: '' });
+    await promise;
+  });
 });
