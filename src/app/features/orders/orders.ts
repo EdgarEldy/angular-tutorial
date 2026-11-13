@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { PageResponse } from '../../shared/models/page-response.model';
 import { buildPaginationParams } from '../../shared/pagination/pagination-params';
+import { CustomerOrdersResponse } from './models/customer-orders-response.model';
 import { OrderRequest } from './models/order-request.model';
 import { OrderResponse } from '../customers/models/order-response.model';
 
@@ -25,8 +26,10 @@ import { OrderResponse } from '../customers/models/order-response.model';
  * The UI may show a preview while creating an order but must always display the
  * server's returned total once the order is saved.
  *
- * Both the customer and product are embedded in the response so list pages can
- * display names without making extra requests per row.
+ * Two response shapes coexist. The list (GET /orders) is grouped by customer
+ * and returns CustomerOrdersResponse entries. The endpoints that deal with a
+ * single order (GET /orders/{id}, POST, PUT) return an OrderResponse with the
+ * customer and the product embedded, so no extra request is needed for names.
  */
 @Injectable({ providedIn: 'root' })
 export class Orders {
@@ -35,24 +38,31 @@ export class Orders {
   private readonly base = `${environment.apiUrl}/orders`;
 
   /**
-   * Returns one page of orders, optionally filtered by customer and/or product.
+   * Returns one page of orders grouped by customer, optionally filtered by
+   * customer and/or product.
+   *
+   * The backend does not return one entry per order here: each entry is a
+   * customer with its order lines and their total. The page is therefore a
+   * page of CUSTOMERS (those having at least one order): `size` is a number
+   * of customers and `totalElements` counts customers, not orders. Sorting,
+   * when used, applies to customer fields only.
    *
    * Filter values are appended as query parameters only when they are defined.
    * An undefined customerId or productId must NOT appear as customerId= in the
    * URL -- buildPaginationParams skips undefined extras automatically.
    *
    * @param page       - 0-based page index matching MatPaginator.pageIndex
-   * @param size       - number of items per page
+   * @param size       - number of customers per page
    * @param customerId - optional customer id filter; omitted when undefined
    * @param productId  - optional product id filter; omitted when undefined
-   * @returns Observable of PageResponse wrapping OrderResponse[]
+   * @returns Observable of PageResponse wrapping CustomerOrdersResponse[]
    */
   getOrders(
     page: number,
     size: number,
     customerId?: number,
     productId?: number,
-  ): Observable<PageResponse<OrderResponse>> {
+  ): Observable<PageResponse<CustomerOrdersResponse>> {
     // buildPaginationParams accepts extra key/value pairs and skips undefined values,
     // so passing undefined for customerId/productId produces no query param.
     const params: HttpParams = buildPaginationParams({ page, size }, {
@@ -60,7 +70,9 @@ export class Orders {
       productId,
     });
     return this.http
-      .get<ApiResponse<PageResponse<OrderResponse>>>(this.base, { params })
+      .get<ApiResponse<PageResponse<CustomerOrdersResponse>>>(this.base, {
+        params,
+      })
       .pipe(map((res) => res.data));
   }
 
