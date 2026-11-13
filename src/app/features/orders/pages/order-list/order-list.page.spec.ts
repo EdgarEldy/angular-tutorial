@@ -12,34 +12,31 @@ import { AppError } from '../../../../core/http/app-error.model';
 
 // ---- stubs ------------------------------------------------------------------
 
-const productStub = {
-  id: 10,
-  product_name: 'Widget',
-  unit_price: 9.99,
-  category_id: 2,
-  category_name: 'Electronics',
-};
-
-const customerStub = {
-  id: 1,
-  first_name: 'Alice',
-  last_name: 'Smith',
-  telephone: '+1-555-0100',
-  email: 'alice@example.com',
-  address: '1 Main St',
-  products: [],
-};
-
-const orderStub = {
-  id: 100,
-  customer: customerStub,
-  product: productStub,
-  quantity: 2,
+// GET /orders groups by customer; each entry has a customer and order lines
+const customerOrdersStub = {
+  customer: {
+    id: 1,
+    first_name: 'Alice',
+    last_name: 'Smith',
+    telephone: '+1-555-0100',
+    email: 'alice@example.com',
+    address: '1 Main St',
+  },
+  products: [
+    {
+      order_id: 100,
+      product_id: 10,
+      product_name: 'Widget',
+      unit_price: 9.99,
+      quantity: 2,
+      total: 19.98,
+    },
+  ],
   total: 19.98,
 };
 
 const orderPageStub = {
-  content: [orderStub],
+  content: [customerOrdersStub],
   page: 0,
   size: 10,
   totalElements: 1,
@@ -146,8 +143,10 @@ describe('OrderListPage', () => {
     const { fixture, component } = await setup();
     fixture.detectChanges();
 
+    // One OrderRow per order line (the stub has one line inside one customer group)
     expect(component['orders']().length).toBe(1);
-    expect(component['orders']()[0].id).toBe(100);
+    expect(component['orders']()[0].orderId).toBe(100);
+    expect(component['orders']()[0].customerName).toBe('Alice Smith');
     expect(component['totalElements']()).toBe(1);
   });
 
