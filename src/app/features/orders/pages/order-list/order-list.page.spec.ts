@@ -44,7 +44,11 @@ const orderPageStub = {
 };
 
 const customerPageStub = {
-  content: [customerStub],
+  content: [
+    { id: 1, first_name: 'Alice', last_name: 'Smith',
+      telephone: '+1-555-0100', email: 'alice@example.com', address: '1 Main St',
+      products: [], total: 0 },
+  ],
   page: 0,
   size: 100,
   totalElements: 1,
@@ -52,7 +56,9 @@ const customerPageStub = {
 };
 
 const productPageStub = {
-  content: [productStub],
+  content: [
+    { id: 10, product_name: 'Widget', unit_price: 9.99, category_id: 2, category_name: 'Electronics' },
+  ],
   page: 0,
   size: 100,
   totalElements: 1,
