@@ -7,6 +7,7 @@ import { ApiResponse } from '../../shared/models/api-response.model';
 import { PageResponse } from '../../shared/models/page-response.model';
 import { RoleResponse } from '../auth/models/user-response.model';
 import { RoleRequest } from './models/role-request.model';
+import { UpdateRolePermissionsRequest } from './models/update-role-permissions-request.model';
 
 /**
  * Service for the /api/v1/roles resource.
@@ -116,6 +117,39 @@ export class Roles {
     return this.http
       .delete<ApiResponse<RoleResponse>>(
         `${this.base}/${roleId}/permissions/${permissionId}`,
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  /**
+   * Adds and removes permissions on a role in a single request.
+   *
+   * PATCH /roles/{roleId}/permissions applies a diff: the caller sends only
+   * the permission ids that changed, not the complete set. One request for
+   * the whole edit means the dialog either saves everything or nothing, and
+   * a change made by another administrator on an untouched permission is
+   * not overwritten.
+   *
+   * Empty lists are left out of the body, following the project rule that
+   * empty values are omitted. The caller must not call this method with
+   * nothing to add and nothing to remove: the backend answers 400.
+   *
+   * @param roleId - role id
+   * @param changes - permission ids to add and to remove
+   * @returns Observable of the updated RoleResponse (server-authoritative state)
+   */
+  updatePermissions(
+    roleId: number,
+    changes: UpdateRolePermissionsRequest,
+  ): Observable<RoleResponse> {
+    const body: UpdateRolePermissionsRequest = {};
+    // Optional chaining covers both a missing list and an empty one
+    if (changes.add?.length) body.add = changes.add;
+    if (changes.remove?.length) body.remove = changes.remove;
+    return this.http
+      .patch<ApiResponse<RoleResponse>>(
+        `${this.base}/${roleId}/permissions`,
+        body,
       )
       .pipe(map((res) => res.data));
   }

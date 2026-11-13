@@ -7,6 +7,7 @@ import { ApiResponse } from '../../shared/models/api-response.model';
 import { PageResponse } from '../../shared/models/page-response.model';
 import { UserResponse } from '../auth/models/user-response.model';
 import { UpdateProfileRequest } from '../auth/models/update-profile-request.model';
+import { UpdateUserRolesRequest } from './models/update-user-roles-request.model';
 
 /** Payload for the bulk-role assignment endpoint. */
 export interface AssignRolesRequest {
@@ -152,6 +153,35 @@ export class Users {
   removeRole(userId: number, roleId: number): Observable<UserResponse> {
     return this.http
       .delete<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles/${roleId}`)
+      .pipe(map((res) => res.data));
+  }
+
+  /**
+   * Adds and removes roles on a user in a single request.
+   *
+   * PATCH /users/{id}/roles applies a diff: the caller sends only the role
+   * ids that changed, not the complete set. One request for the whole edit
+   * means the dialog either saves everything or nothing, and a change made
+   * by another administrator on an untouched role is not overwritten.
+   *
+   * Empty lists are left out of the body, following the project rule that
+   * empty values are omitted. The caller must not call this method with
+   * nothing to add and nothing to remove: the backend answers 400.
+   *
+   * @param userId - user id
+   * @param changes - role ids to add and to remove
+   * @returns Observable of the updated UserResponse reflecting the new roles
+   */
+  updateRoles(
+    userId: number,
+    changes: UpdateUserRolesRequest,
+  ): Observable<UserResponse> {
+    const body: UpdateUserRolesRequest = {};
+    // Optional chaining covers both a missing list and an empty one
+    if (changes.add?.length) body.add = changes.add;
+    if (changes.remove?.length) body.remove = changes.remove;
+    return this.http
+      .patch<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles`, body)
       .pipe(map((res) => res.data));
   }
 }
