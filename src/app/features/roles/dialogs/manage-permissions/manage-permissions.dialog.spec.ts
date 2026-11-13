@@ -23,35 +23,38 @@ const permissionsMock = {
 
 const dialogRefMock = { close: vi.fn() };
 
+/** Configures TestBed and returns the fixture for the given role. */
+async function setup(role: typeof roleStub | typeof roleWithPerm) {
+  dialogRefMock.close.mockClear();
+  rolesMock.updatePermissions.mockClear();
+  rolesMock.updatePermissions.mockReturnValue(of(roleWithPerm));
+
+  await TestBed.configureTestingModule({
+    imports: [ManagePermissionsDialog],
+    providers: [
+      provideAnimationsAsync(),
+      { provide: Roles, useValue: rolesMock },
+      { provide: Permissions, useValue: permissionsMock },
+      { provide: MatDialogRef, useValue: dialogRefMock },
+      { provide: MAT_DIALOG_DATA, useValue: { role } },
+    ],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(ManagePermissionsDialog);
+  return { fixture, component: fixture.componentInstance };
+}
+
 describe('ManagePermissionsDialog', () => {
-  let fixture: ComponentFixture<ManagePermissionsDialog>;
-  let component: ManagePermissionsDialog;
+  // Reset TestBed between tests so each can configure it independently
+  beforeEach(() => TestBed.resetTestingModule());
 
-  beforeEach(async () => {
-    dialogRefMock.close.mockClear();
-    rolesMock.updatePermissions.mockClear();
-    rolesMock.updatePermissions.mockReturnValue(of(roleWithPerm));
-
-    await TestBed.configureTestingModule({
-      imports: [ManagePermissionsDialog],
-      providers: [
-        provideAnimationsAsync(),
-        { provide: Roles, useValue: rolesMock },
-        { provide: Permissions, useValue: permissionsMock },
-        { provide: MatDialogRef, useValue: dialogRefMock },
-        { provide: MAT_DIALOG_DATA, useValue: { role: roleStub } },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ManagePermissionsDialog);
-    component = fixture.componentInstance;
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    const { fixture } = await setup(roleStub);
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('loads all permissions on init and starts with no pre-checks when role has none', async () => {
+    const { fixture, component } = await setup(roleStub);
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component['allPermissions']()).toEqual([permStub]);
@@ -59,25 +62,14 @@ describe('ManagePermissionsDialog', () => {
   });
 
   it('pre-checks permissions already assigned to the role', async () => {
-    // Reconfigure with a role that already has the permission assigned
-    await TestBed.configureTestingModule({
-      imports: [ManagePermissionsDialog],
-      providers: [
-        provideAnimationsAsync(),
-        { provide: Roles, useValue: rolesMock },
-        { provide: Permissions, useValue: permissionsMock },
-        { provide: MatDialogRef, useValue: dialogRefMock },
-        { provide: MAT_DIALOG_DATA, useValue: { role: roleWithPerm } },
-      ],
-    }).compileComponents();
-
-    const f = TestBed.createComponent(ManagePermissionsDialog);
-    f.detectChanges();
-    await f.whenStable();
-    expect(f.componentInstance['checkedIds']().has(permStub.id)).toBe(true);
+    const { fixture, component } = await setup(roleWithPerm);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component['checkedIds']().has(permStub.id)).toBe(true);
   });
 
   it('toggle adds an unchecked permission to checkedIds', async () => {
+    const { fixture, component } = await setup(roleStub);
     fixture.detectChanges();
     await fixture.whenStable();
     (component as unknown as { toggle: (id: number) => void }).toggle(permStub.id);
@@ -85,6 +77,7 @@ describe('ManagePermissionsDialog', () => {
   });
 
   it('save calls updatePermissions with computed diff and closes on success', async () => {
+    const { fixture, component } = await setup(roleStub);
     fixture.detectChanges();
     await fixture.whenStable();
     // permStub.id was initially unchecked; toggling adds it
@@ -100,6 +93,7 @@ describe('ManagePermissionsDialog', () => {
   });
 
   it('save closes without a server call when nothing changed', async () => {
+    const { fixture, component } = await setup(roleStub);
     fixture.detectChanges();
     await fixture.whenStable();
     // No toggles -- the selection matches the initial state (both empty)
@@ -110,7 +104,8 @@ describe('ManagePermissionsDialog', () => {
     expect(dialogRefMock.close).toHaveBeenCalledWith(roleStub);
   });
 
-  it('cancel closes the dialog without a server call', () => {
+  it('cancel closes the dialog without a server call', async () => {
+    const { component } = await setup(roleStub);
     (component as unknown as { cancel: () => void }).cancel();
     expect(rolesMock.updatePermissions).not.toHaveBeenCalled();
     expect(dialogRefMock.close).toHaveBeenCalledWith(roleStub);
@@ -120,6 +115,7 @@ describe('ManagePermissionsDialog', () => {
     const error: AppError = { kind: 'BUSINESS_RULE', status: 422, message: 'Cannot assign' };
     rolesMock.updatePermissions.mockReturnValueOnce(throwError(() => error));
 
+    const { fixture, component } = await setup(roleStub);
     fixture.detectChanges();
     await fixture.whenStable();
     (component as unknown as { toggle: (id: number) => void }).toggle(permStub.id);
@@ -135,6 +131,7 @@ describe('ManagePermissionsDialog', () => {
     const error: AppError = { kind: 'SERVER', status: 500, message: 'Server error' };
     rolesMock.updatePermissions.mockReturnValueOnce(throwError(() => error));
 
+    const { fixture, component } = await setup(roleStub);
     fixture.detectChanges();
     await fixture.whenStable();
     (component as unknown as { toggle: (id: number) => void }).toggle(permStub.id);
