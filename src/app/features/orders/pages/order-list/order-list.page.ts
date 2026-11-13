@@ -21,6 +21,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { Orders } from '../../orders';
 import { Customers } from '../../../customers/customers';
 import { Products } from '../../../products/products';
+import { CustomerOrdersResponse } from '../../models/customer-orders-response.model';
 import { OrderResponse } from '../../../customers/models/order-response.model';
 import { CustomerResponse } from '../../../customers/models/customer-response.model';
 import { ProductResponse } from '../../../products/models/product-response.model';
@@ -35,11 +36,35 @@ import {
 } from '../../dialogs/order-form/order-form.dialog';
 
 /**
+ * Flat row derived from CustomerOrdersResponse for use in the Material table.
+ *
+ * GET /orders groups order lines by customer. The table needs one row per
+ * order line, so the page flattens each CustomerOrdersResponse into one
+ * OrderRow per entry in its products array. The customerId is kept so the
+ * edit dialog can be pre-filled with the correct customer.
+ */
+interface OrderRow {
+  /** Id of the individual order, used for GET/PUT/DELETE /orders/{id}. */
+  orderId: number;
+  /** Customer id, used to pre-fill the edit dialog. */
+  customerId: number;
+  /** Display name shown in the Customer column. */
+  customerName: string;
+  /** Product name shown in the Product column. */
+  productName: string;
+  /** Quantity for this order line. */
+  quantity: number;
+  /** Server-computed total for this order line. */
+  total: number;
+}
+
+/**
  * Paginated list page for orders (authenticated users only).
  *
- * Displays order id, customer full name, product name, quantity and total
- * in a Material table. Customers and products embedded in each OrderResponse
- * provide those names directly -- no extra HTTP request per row.
+ * GET /orders returns CustomerOrdersResponse entries -- one per customer with
+ * their order lines. The page flattens these into OrderRow values so the
+ * Material table can display one row per order line. The paginator counts
+ * customers, not individual orders; this is documented in the Orders service.
  *
  * Two filter selects (customer, product) are loaded once on init from
  * CustomersService and ProductsService using a large size=100 to approximate
@@ -86,7 +111,8 @@ export class OrderListPage implements OnInit {
   // --- Order list state -------------------------------------------------------
   protected readonly loading = signal(true);
   protected readonly error = signal<AppError | null>(null);
-  protected readonly orders = signal<OrderResponse[]>([]);
+  // Flattened rows: one per order line, derived from CustomerOrdersResponse[]
+  protected readonly orders = signal<OrderRow[]>([]);
   protected readonly totalElements = signal(0);
   protected readonly page = signal(0);
   protected readonly pageSize = signal(10);
@@ -140,6 +166,11 @@ export class OrderListPage implements OnInit {
   /**
    * Loads one page of orders from the backend, applying current filters.
    * Called on init, after filter changes, and after create/edit/delete.
+   *
+   * The backend returns CustomerOrdersResponse entries grouped by customer.
+   * This method flattens them into OrderRow values so each order line maps to
+   * exactly one table row. The paginator still reflects the customer count
+   * because totalElements counts customers, not individual order lines.
    */
   protected loadOrders(): void {
     this.loading.set(true);
@@ -154,7 +185,19 @@ export class OrderListPage implements OnInit {
       )
       .subscribe({
         next: (pageResult) => {
-          this.orders.set(pageResult.content);
+          // Flatten: one CustomerOrdersResponse -> N OrderRow (one per order line)
+          const rows: OrderRow[] = pageResult.content.flatMap(
+            (entry: CustomerOrdersResponse) =>
+              entry.products.map((line) => ({
+                orderId: line.order_id,
+                customerId: entry.customer.id,
+                customerName: `${entry.customer.first_name} ${entry.customer.last_name}`,
+                productName: line.product_name,
+                quantity: line.quantity,
+                total: line.total,
+              })),
+          );
+          this.orders.set(rows);
           this.totalElements.set(pageResult.totalElements);
           this.loading.set(false);
         },
@@ -202,10 +245,10 @@ export class OrderListPage implements OnInit {
   /**
    * Navigates to the order detail page.
    *
-   * @param order - the order row that was clicked
+   * @param row - the flat order row that was clicked
    */
-  protected navigateToDetail(order: OrderResponse): void {
-    void this.router.navigate(['/orders', order.id]);
+  protected navigateToDetail(row: OrderRow): void {
+    void this.router.navigate(['/orders', row.orderId]);
   }
 
   /**
@@ -227,26 +270,38 @@ export class OrderListPage implements OnInit {
   }
 
   /**
-   * Opens the edit dialog pre-filled with the existing order.
-   * Replaces the row from the returned OrderResponse on success.
+   * Fetches the full OrderResponse for the given row then opens the edit dialog.
    *
-   * @param order - the order to edit
+   * The list uses the grouped CustomerOrdersResponse shape; the edit dialog
+   * needs a full OrderResponse (with embedded product details). One extra GET
+   * is made per edit click so the dialog can display the existing product name
+   * and pre-fill the quantity correctly.
+   *
+   * On success the list is fully reloaded so grouping and totals are consistent.
+   *
+   * @param row - the flat order row to edit
    */
-  protected openEditDialog(order: OrderResponse): void {
-    const data: OrderFormDialogData = { order };
-    const ref = this.dialog.open<
-      OrderFormDialog,
-      OrderFormDialogData,
-      OrderResponse
-    >(OrderFormDialog, { data });
+  protected openEditDialog(row: OrderRow): void {
+    // Fetch the full single-order representation before opening the dialog
+    this.ordersService.getOrder(row.orderId).subscribe({
+      next: (order: OrderResponse) => {
+        const data: OrderFormDialogData = { order };
+        const ref = this.dialog.open<
+          OrderFormDialog,
+          OrderFormDialogData,
+          OrderResponse
+        >(OrderFormDialog, { data });
 
-    ref.afterClosed().subscribe((updated: OrderResponse | undefined) => {
-      if (updated) {
-        // Update the specific row without reloading the entire list
-        this.orders.update((list) =>
-          list.map((o) => (o.id === updated.id ? updated : o)),
-        );
-      }
+        ref.afterClosed().subscribe((updated: OrderResponse | undefined) => {
+          if (updated) {
+            // Reload so the grouped list reflects the new data
+            this.loadOrders();
+          }
+        });
+      },
+      error: (err: AppError) => {
+        this.notification.error(err.message);
+      },
     });
   }
 
@@ -254,25 +309,27 @@ export class OrderListPage implements OnInit {
    * Confirms then deletes an order.
    * Any error shows the backend message via snackbar.
    *
-   * @param order - the order to delete
+   * @param row - the flat order row to delete
    */
-  protected deleteOrder(order: OrderResponse): void {
+  protected deleteOrder(row: OrderRow): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Delete order',
-        message: `Delete order #${order.id}? This cannot be undone.`,
+        message: `Delete order #${row.orderId}? This cannot be undone.`,
       },
     });
 
     ref.afterClosed().subscribe((confirmed: boolean | undefined) => {
       if (!confirmed) return;
 
-      this.ordersService.deleteOrder(order.id).subscribe({
+      this.ordersService.deleteOrder(row.orderId).subscribe({
         next: () => {
-          // Remove the deleted row from the signal without a full reload
-          this.orders.update((list) => list.filter((o) => o.id !== order.id));
+          // Remove the row immediately without a full reload for responsiveness
+          this.orders.update((list) =>
+            list.filter((o) => o.orderId !== row.orderId),
+          );
           this.totalElements.update((n) => n - 1);
-          this.notification.success(`Order #${order.id} deleted.`);
+          this.notification.success(`Order #${row.orderId} deleted.`);
         },
         error: (err: AppError) => {
           this.notification.error(err.message);

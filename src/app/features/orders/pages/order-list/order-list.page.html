@@ -46,27 +46,27 @@
   <div class="table-container">
     <table mat-table [dataSource]="orders()">
 
-      <!-- Order ID column -->
+      <!-- Order ID: from OrderRow.orderId (maps to OrderedProductResponse.order_id) -->
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef>Order #</th>
         <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-          {{ o.id }}
+          {{ o.orderId }}
         </td>
       </ng-container>
 
-      <!-- Customer name from embedded customer object -- no extra request -->
+      <!-- Customer name: flattened from CustomerOrdersResponse.customer -->
       <ng-container matColumnDef="customer_name">
         <th mat-header-cell *matHeaderCellDef>Customer</th>
         <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-          {{ o.customer.first_name }} {{ o.customer.last_name }}
+          {{ o.customerName }}
         </td>
       </ng-container>
 
-      <!-- Product name from embedded product object -- no extra request -->
+      <!-- Product name: flattened from OrderedProductResponse.product_name -->
       <ng-container matColumnDef="product_name">
         <th mat-header-cell *matHeaderCellDef>Product</th>
         <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">
-          {{ o.product.product_name }}
+          {{ o.productName }}
         </td>
       </ng-container>
 
@@ -78,7 +78,7 @@
         </td>
       </ng-container>
 
-      <!-- Total: computed by the server; formatted with MoneyPipe -->
+      <!-- Total: server-computed per order line; formatted with MoneyPipe -->
       <ng-container matColumnDef="total">
         <th mat-header-cell *matHeaderCellDef>Total</th>
         <td mat-cell *matCellDef="let o" class="clickable" (click)="navigateToDetail(o)">

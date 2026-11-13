@@ -1,7 +1,7 @@
 # API Contract
 
 > **Source**: Generated from `contracts/business.openapi.json` (downloaded from
-> `http://localhost:8080/v3/api-docs` on 2026-11-09).
+> `http://localhost:8080/v3/api-docs` on 2026-11-13, backend branch `feature/user-management`).
 > SST (spring-security-tutorial) has been decommissioned. SBT (spring-boot-tutorial)
 > now owns all endpoints. Run `/contract-sync` once SBT is running to refresh the spec.
 
@@ -63,7 +63,7 @@ interface JwtClaims {
 | Method | Path | Body | Access | Notes |
 |---|---|---|---|---|
 | POST | `/api/v1/auth/register` | `RegisterRequest` | Public | Creates disabled account; sends activation email; returns `UserResponse`; 422 if username/email taken |
-| GET | `/api/v1/auth/activate?token=` | -- | Public | Activates account; returns `UserResponse`; 400 on invalid/expired token |
+| GET | `/api/v1/auth/activate-account?token=` | -- | Public | Activates account; returns `UserResponse`; 400 on invalid/expired token |
 | POST | `/api/v1/auth/login` | `LoginRequest` | Public | Returns `AuthResponse`; 401 for wrong credentials, locked or disabled account |
 | POST | `/api/v1/auth/logout` | -- | Authenticated | Blacklists JWT server-side via `Authorization` header; call even if token is locally discarded |
 | POST | `/api/v1/auth/refresh-token` | -- | Authenticated (refresh) | Pass refresh token as `Authorization: Bearer <refresh>`; returns new `AuthResponse` |
@@ -93,8 +93,7 @@ interface ResetPasswordRequest  { new_password: string; confirm_password: string
 | DELETE | `/api/v1/users/{id}` | -- | |
 | PATCH | `/api/v1/users/{id}/lock` | -- | Returns `UserResponse`; 422 if locking own account |
 | PATCH | `/api/v1/users/{id}/unlock` | -- | Returns `UserResponse` |
-| PUT | `/api/v1/users/{id}/roles` | `AssignRolesRequest` | Replaces the full role set; returns `UserResponse` |
-| DELETE | `/api/v1/users/{id}/roles/{roleId}` | -- | Removes a single role; returns `UserResponse` |
+| PATCH | `/api/v1/users/{id}/roles` | `UpdateUserRolesRequest` | Adds and removes roles in one call; returns the updated `UserResponse`; see "Partial updates with add / remove" |
 
 **Models:**
 
@@ -102,7 +101,7 @@ interface ResetPasswordRequest  { new_password: string; confirm_password: string
 interface UserResponse        { id: number; first_name: string; last_name: string; username: string; email: string;
                                 enabled: boolean; account_locked: boolean; roles: RoleResponse[] }
 interface UpdateProfileRequest { username?: string; email?: string }
-interface AssignRolesRequest   { role_ids: number[] }
+interface UpdateUserRolesRequest { add?: number[]; remove?: number[] }  // role ids
 ```
 
 ---
@@ -115,8 +114,7 @@ interface AssignRolesRequest   { role_ids: number[] }
 | POST | `/api/v1/roles` | `RoleRequest` | |
 | PUT | `/api/v1/roles/{id}` | `RoleRequest` | |
 | DELETE | `/api/v1/roles/{id}` | -- | 422 if still assigned to users |
-| POST | `/api/v1/roles/{roleId}/permissions/{permissionId}` | -- | Returns updated `RoleResponse` |
-| DELETE | `/api/v1/roles/{roleId}/permissions/{permissionId}` | -- | Returns updated `RoleResponse` |
+| PATCH | `/api/v1/roles/{roleId}/permissions` | `UpdateRolePermissionsRequest` | Adds and removes permissions in one call; returns the updated `RoleResponse`; see "Partial updates with add / remove" |
 
 **Models:**
 
@@ -125,6 +123,7 @@ interface PermissionResponse { id: number; resource: string; action: string }
 interface PermissionRequest  { resource: string; action: string }
 interface RoleResponse       { id: number; role_name: string; permissions: PermissionResponse[] }
 interface RoleRequest        { role_name: string }
+interface UpdateRolePermissionsRequest { add?: number[]; remove?: number[] }  // permission ids
 ```
 
 ---
@@ -136,6 +135,24 @@ interface RoleRequest        { role_name: string }
 | GET | `/api/v1/permissions` | -- | **Paginated** (`PageResponse<PermissionResponse>`); pass `size=1000` to load all |
 | POST | `/api/v1/permissions` | `PermissionRequest` | |
 | DELETE | `/api/v1/permissions/{id}` | -- | 422 if still assigned to a role |
+
+---
+
+## Partial updates with add / remove
+
+Applies to `PATCH /api/v1/users/{id}/roles` and `PATCH /api/v1/roles/{roleId}/permissions`.
+The OpenAPI spec only describes the shape of the body; the rules below come from the backend
+team and are not visible in `business.openapi.json`.
+
+| Rule | Result |
+|---|---|
+| Body is `{ "add": [...], "remove": [...] }`; both fields are optional | -- |
+| Both lists empty or missing | 400 |
+| The same id present in `add` and in `remove` | 400 |
+| Adding an id that is already assigned, or removing one that is not | No error, no effect (the former 422 "already assigned" / "not assigned" no longer exist) |
+| Unknown id (user, role or permission) | 404, and nothing is modified (unknown role on a user used to be a 422) |
+
+The UI sends only the differences: `add` holds the newly checked ids, `remove` the unchecked ones.
 
 ---
 
@@ -183,9 +200,9 @@ interface ProductResponse { id: number; product_name: string; unit_price: number
 
 | Method | Path | Access | Notes |
 |---|---|---|---|
-| GET | `/api/v1/customers` | Authenticated | Paginated; optional `search` by name |
-| GET | `/api/v1/customers/{id}` | Authenticated | Detail with `products` the customer ordered |
-| GET | `/api/v1/customers/{id}/orders` | Authenticated | Paginated orders; 404 if customer not found |
+| GET | `/api/v1/customers` | Authenticated | Paginated; optional `search` by name; each customer carries its `products` and `total` |
+| GET | `/api/v1/customers/{id}` | Authenticated | Detail; same shape as a list item (`products` and `total` filled) |
+| GET | `/api/v1/customers/{id}/orders` | Authenticated | Paginated `OrderResponse` (one entry per order); 404 if customer not found |
 | POST | `/api/v1/customers` | ADMIN | Body `CustomerRequest`; 201; email must be unique |
 | PUT | `/api/v1/customers/{id}` | ADMIN | Body `CustomerRequest` |
 | DELETE | `/api/v1/customers/{id}` | ADMIN | |
@@ -195,8 +212,17 @@ interface ProductResponse { id: number; product_name: string; unit_price: number
 ```ts
 interface CustomerRequest  { first_name: string; last_name: string; telephone: string; email: string; address: string }
 interface CustomerResponse { id: number; first_name: string; last_name: string; telephone: string;
-                             email: string; address: string; products: ProductResponse[] }
+                             email: string; address: string; products: OrderedProductResponse[]; total: number }
+interface OrderedProductResponse { order_id: number; product_id: number; product_name: string;
+                                   unit_price: number; quantity: number; total: number }
 ```
+
+`products` holds **one line per order, not per product**: a product ordered twice gives two
+lines, each with its own `order_id`, `quantity` and line `total`. `CustomerResponse.total` is the
+customer's overall total. A customer without any order has an empty `products` list and a
+`total` of 0. (Behaviour stated by the backend team; the OpenAPI spec only gives the shapes.)
+
+`OrderedProductResponse` is also used by the grouped order list below.
 
 ---
 
@@ -204,18 +230,32 @@ interface CustomerResponse { id: number; first_name: string; last_name: string; 
 
 | Method | Path | Access | Notes |
 |---|---|---|---|
-| GET | `/api/v1/orders` | Authenticated | Paginated; filters: `customerId`, `productId` |
-| GET | `/api/v1/orders/{id}` | Authenticated | Detail with full `customer` and `product` embedded |
-| POST | `/api/v1/orders` | ADMIN | Body `OrderRequest`; 201; `total` computed by server |
-| PUT | `/api/v1/orders/{id}` | ADMIN | Body `OrderRequest` |
+| GET | `/api/v1/orders` | Authenticated | Paginated `CustomerOrdersResponse`: **orders grouped by customer**; filters: `customerId`, `productId`; see notes below |
+| GET | `/api/v1/orders/{id}` | Authenticated | Single `OrderResponse` with `customer` and `product` embedded |
+| POST | `/api/v1/orders` | ADMIN | Body `OrderRequest`; 201; returns a single `OrderResponse`; `total` computed by server |
+| PUT | `/api/v1/orders/{id}` | ADMIN | Body `OrderRequest`; returns a single `OrderResponse` |
 | DELETE | `/api/v1/orders/{id}` | ADMIN | |
 
 **Models:**
 
 ```ts
 interface OrderRequest  { customer_id: number; product_id: number; quantity: number }
-interface OrderResponse { id: number; customer: CustomerResponse; product: ProductResponse; quantity: number; total: number }
+interface OrderResponse { id: number; customer: OrderCustomerResponse; product: ProductResponse; quantity: number; total: number }
+interface OrderCustomerResponse  { id: number; first_name: string; last_name: string; telephone: string;
+                                   email: string; address: string }  // no products, no total
+interface CustomerOrdersResponse { customer: OrderCustomerResponse; products: OrderedProductResponse[]; total: number }
 ```
+
+Notes on `GET /api/v1/orders` (stated by the backend team; not visible in the OpenAPI spec):
+
+- One entry per **customer having at least one order**, with that customer's order lines in
+  `products` and their sum in `total`.
+- Pagination counts **customers**, not orders: `totalElements` is the number of customers with
+  at least one order.
+- `sort` applies to customer fields only (`id`, `lastName`, `firstName`). Sorting by `total` or
+  `quantity` is no longer possible on this endpoint.
+- The single-order endpoints (`GET /orders/{id}`, `POST`, `PUT`, `GET /customers/{id}/orders`)
+  still return one `OrderResponse` per order.
 
 ---
 
@@ -229,6 +269,7 @@ interface OrderResponse { id: number; customer: CustomerResponse; product: Produ
 | `logout` must call the backend even if the response fails, then clear the session | `AuthService.logout()` |
 | An admin cannot lock their own account | Disable the lock button on the current user's own row; backend also returns 422 |
 | Deleting a role/permission still assigned returns 422 | Show backend message; keep the row |
+| Role permissions and user roles are saved as a diff (`add` / `remove`) in one PATCH | Dialog with checkboxes; Save disabled while nothing changed (an empty diff is a 400) |
 | Deleting a category with products returns 422 | Show backend message; keep the row |
 | `total` of an order is computed by the server | Show a preview in the dialog; display the server's `total` once the order is saved |
 | A product PUT can return 409 (modified elsewhere) | Show message, keep dialog open, offer to reload |

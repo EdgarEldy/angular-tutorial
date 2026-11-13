@@ -98,32 +98,27 @@ describe('Users', () => {
     expect(result.account_locked).toBe(false);
   });
 
-  it('assignRoles calls PUT /users/{id}/roles with role_ids body', async () => {
+  it('updateRoles calls PATCH /users/{id}/roles with add and remove', async () => {
     const userWithRole = { ...userStub, roles: [roleStub] };
-    const promise = firstValueFrom(service.assignRoles(1, [10]));
+    const promise = firstValueFrom(
+      service.updateRoles(1, { add: [10], remove: [11] }),
+    );
     const req = httpCtrl.expectOne(`${BASE}/1/roles`);
-    expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual({ role_ids: [10] });
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ add: [10], remove: [11] });
     req.flush({ success: true, message: '', data: userWithRole, timestamp: '' });
     const result = await promise;
     expect(result.roles).toEqual([roleStub]);
   });
 
-  it('assignRoles with empty array removes all roles', async () => {
-    const promise = firstValueFrom(service.assignRoles(1, []));
+  it('updateRoles omits an empty list from the body', async () => {
+    const promise = firstValueFrom(
+      service.updateRoles(1, { add: [10], remove: [] }),
+    );
     const req = httpCtrl.expectOne(`${BASE}/1/roles`);
-    expect(req.request.body).toEqual({ role_ids: [] });
+    // An empty remove list is dropped: only the non-empty side of the diff is sent
+    expect(req.request.body).toEqual({ add: [10] });
     req.flush({ success: true, message: '', data: userStub, timestamp: '' });
-    const result = await promise;
-    expect(result.roles).toEqual([]);
-  });
-
-  it('removeRole calls DELETE /users/{id}/roles/{roleId} and returns UserResponse', async () => {
-    const promise = firstValueFrom(service.removeRole(1, 10));
-    const req = httpCtrl.expectOne(`${BASE}/1/roles/10`);
-    expect(req.request.method).toBe('DELETE');
-    req.flush({ success: true, message: '', data: userStub, timestamp: '' });
-    const result = await promise;
-    expect(result.roles).toEqual([]);
+    await promise;
   });
 });

@@ -18,8 +18,8 @@ import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-sta
 
 import { Customers } from '../../customers';
 import { CustomerResponse } from '../../models/customer-response.model';
+import { OrderedProductResponse } from '../../models/ordered-product-response.model';
 import { OrderResponse } from '../../models/order-response.model';
-import { ProductResponse } from '../../../products/models/product-response.model';
 import { AppError } from '../../../../core/http/app-error.model';
 import { MoneyPipe } from '../../../../shared/pipes/money-pipe';
 
@@ -27,11 +27,13 @@ import { MoneyPipe } from '../../../../shared/pipes/money-pipe';
  * Detail page for a single customer (authenticated users only).
  *
  * Shows three sections:
- *  1. Customer info card: name, email, telephone, address.
- *  2. Products list: products the customer has ordered, read from the
- *     CustomerResponse.products array (filled only by GET /customers/{id}).
- *  3. Paginated orders table: id, product name, quantity, total -- loaded from
- *     GET /customers/{id}/orders. Total is formatted with MoneyPipe.
+ *  1. Customer info card: name, email, telephone, address, overall total.
+ *  2. Order lines table: one row per order line from CustomerResponse.products
+ *     (order_id, product_name, unit_price, quantity, line total). This list
+ *     is populated only by GET /customers/{id}; it is always empty on the
+ *     list endpoint.
+ *  3. Paginated orders table from GET /customers/{id}/orders: id, product
+ *     name, quantity, total -- independently loaded and paginated.
  *
  * Each section has its own loading / error / empty / data state so a failure
  * in one section does not block the others.
@@ -72,8 +74,8 @@ export class CustomerDetailPage implements OnInit {
   protected readonly errorCustomer = signal<AppError | null>(null);
   protected readonly customer = signal<CustomerResponse | null>(null);
 
-  // --- Products section state (from CustomerResponse.products) -------------
-  protected readonly products = signal<ProductResponse[]>([]);
+  // --- Order lines section state (from CustomerResponse.products) -----------
+  protected readonly products = signal<OrderedProductResponse[]>([]);
 
   // --- Orders section state ------------------------------------------------
   protected readonly loadingOrders = signal(true);
@@ -83,14 +85,21 @@ export class CustomerDetailPage implements OnInit {
   protected readonly ordersPage = signal(0);
   protected readonly ordersPageSize = signal(10);
 
+  // order_id is the stable key per line (a product ordered twice appears twice)
+  protected readonly productColumns = [
+    'order_id',
+    'product_name',
+    'unit_price',
+    'quantity',
+    'total',
+  ];
+
   protected readonly orderColumns = [
     'order_id',
     'product_name',
     'quantity',
     'total',
   ];
-
-  protected readonly productColumns = ['product_name', 'unit_price'];
 
   /** @inheritdoc */
   ngOnInit(): void {
@@ -113,7 +122,7 @@ export class CustomerDetailPage implements OnInit {
     this.customersService.getCustomer(id).subscribe({
       next: (cust) => {
         this.customer.set(cust);
-        // products is populated by the detail endpoint only
+        // products is populated only by the detail endpoint (empty on the list)
         this.products.set(cust.products);
         this.loadingCustomer.set(false);
         // Load orders now that we know the customer exists

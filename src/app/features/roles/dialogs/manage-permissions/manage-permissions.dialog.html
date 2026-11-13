@@ -5,50 +5,39 @@
     <div class="center">
       <mat-spinner diameter="32" />
     </div>
+  } @else if (allPermissions().length === 0) {
+    <p class="empty-hint">No permissions defined in the system.</p>
   } @else {
-    <!-- Current permissions as removable chips -->
-    <p class="section-label">Assigned permissions</p>
-    @if (role().permissions.length === 0) {
-      <p class="empty-hint">No permissions assigned yet.</p>
-    } @else {
-      <mat-chip-set>
-        @for (p of role().permissions; track p.id) {
-          <mat-chip
-            [removable]="true"
-            (removed)="removePermission(p)">
-            {{ p.resource }}:{{ p.action }}
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
-        }
-      </mat-chip-set>
-    }
-
-    <!-- Add permission select -->
-    <p class="section-label" style="margin-top: 16px;">Add permission</p>
-    <div class="add-row">
-      <mat-select
-        [(ngModel)]="selectedPermissionId"
-        [disabled]="saving()"
-        placeholder="Select a permission">
-        @for (p of availablePermissions; track p.id) {
-          <mat-option [value]="p.id">{{ p.resource }}:{{ p.action }}</mat-option>
-        }
-      </mat-select>
-      <button
-        mat-raised-button
-        color="primary"
-        [disabled]="selectedPermissionId === null || saving()"
-        (click)="addPermission()">
-        @if (saving()) {
-          <mat-spinner diameter="18" />
-        } @else {
-          Add
-        }
-      </button>
+    <p class="section-label">Permissions</p>
+    <!-- One checkbox per permission; pre-checked when already on the role -->
+    <div class="checkbox-list">
+      @for (p of allPermissions(); track p.id) {
+        <mat-checkbox
+          [checked]="isChecked(p.id)"
+          [disabled]="saving()"
+          (change)="toggle(p.id)">
+          {{ p.resource }}:{{ p.action }}
+        </mat-checkbox>
+      }
     </div>
+
+    @if (businessError()) {
+      <p class="business-error">{{ businessError() }}</p>
+    }
   }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="close()">Close</button>
+  <button mat-button [disabled]="saving()" (click)="cancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="loadingAll() || saving()"
+    (click)="save()">
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Save
+    }
+  </button>
 </mat-dialog-actions>

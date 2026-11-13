@@ -10,13 +10,9 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { FormsModule } from '@angular/forms';
 
 import { Users } from '../../users';
 import { Roles } from '../../../roles/roles';
@@ -26,42 +22,36 @@ import { NotificationService } from '../../../../core/notification/notification'
 
 /** Data passed to the dialog via MAT_DIALOG_DATA. */
 export interface ManageRolesDialogData {
-  /** User whose roles to manage. The list response has roles: [] so the
-   *  dialog fetches GET /users/{id} on open to get the full role set. */
+  /** User whose roles to manage. */
   user: UserResponse;
 }
 
 /**
  * Dialog for assigning or removing roles from a user.
  *
- * On open it fetches GET /users/{id} to get the full role set (the list
- * endpoint returns users with empty roles arrays). It also loads all roles
- * so the add-select can show unassigned ones.
+ * On open it fetches GET /users/{id} to load the full role set (the list
+ * endpoint returns users with empty roles arrays) and GET /roles for the
+ * complete list of available roles. It pre-checks the roles currently on
+ * the user and loads the full list in parallel to avoid a sequential wait.
  *
- * Both addRole() and removeRole() compute the new desired role ID set and
- * call PUT /users/{userId}/roles with that set via assignRoles(). The backend
- * replaces the user's roles atomically, avoiding ordering issues that arise
- * when adding and removing one at a time.
+ * On submit it diffs the initial checked set against the final one and
+ * calls PATCH /users/{id}/roles once with { add, remove }. The diff
+ * approach means a concurrent administrator's change to an unrelated role
+ * is not overwritten.
  *
- * Each role chip has an expandable section showing its permissions, so the
- * admin can see what a role grants before assigning or removing it.
- *
- * Closing the dialog emits the final UserResponse for the parent page to
- * refresh its row.
+ * On success the dialog closes and emits the updated UserResponse. On a
+ * BUSINESS_RULE error (422) it stays open and shows the backend message
+ * inline; all other errors go to the global notification service.
  */
 @Component({
   selector: 'app-manage-roles-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FormsModule,
     MatDialogModule,
-    MatChipsModule,
-    MatSelectModule,
+    MatCheckboxModule,
     MatButtonModule,
-    MatIconModule,
     MatProgressSpinnerModule,
-    MatExpansionModule,
   ],
   templateUrl: './manage-roles.dialog.html',
   styleUrl: './manage-roles.dialog.scss',
@@ -74,24 +64,39 @@ export class ManageRolesDialog implements OnInit {
   private readonly dialogRef =
     inject<MatDialogRef<ManageRolesDialog, UserResponse>>(MatDialogRef);
 
-  /** User state, updated after each role assign/remove. */
+  /** User state; replaced when the detail call returns. */
   protected readonly user = signal<UserResponse>({ ...this.data.user, roles: [] });
 
-  /** All roles in the system (for the add-select). */
+  /** All roles in the system (for the checkbox list). */
   protected readonly allRoles = signal<RoleResponse[]>([]);
 
-  /** Currently selected role id in the add-select. */
-  protected selectedRoleId: number | null = null;
+  /**
+   * Set of role ids currently checked.
+   *
+   * Signals holding mutable objects must be replaced, not mutated, so Angular
+   * detects the change and schedules a re-render.
+   */
+  protected readonly checkedIds = signal(new Set<number>());
 
   protected readonly loadingDetail = signal(true);
   protected readonly saving = signal(false);
 
+  /** Non-null when a 422 response keeps the dialog open with a message. */
+  protected readonly businessError = signal<string | null>(null);
+
+  /** Snapshot of the initially-assigned role ids; used to compute the diff. */
+  private initialIds = new Set<number>();
+
   /** @inheritdoc */
   ngOnInit(): void {
-    // Load full user detail (roles populated) and all roles in parallel
+    // Load user detail and all roles in parallel
     this.usersService.getUser(this.data.user.id).subscribe({
       next: (u) => {
         this.user.set(u);
+        const assigned = new Set(u.roles.map((r) => r.id));
+        this.initialIds = new Set(assigned);
+        // Replace the signal value -- never mutate a Set held in a signal
+        this.checkedIds.set(assigned);
         this.loadingDetail.set(false);
       },
       error: () => {
@@ -105,70 +110,73 @@ export class ManageRolesDialog implements OnInit {
   }
 
   /**
-   * Returns roles not yet assigned to the user.
+   * Returns true when the given role id is currently checked.
+   *
+   * @param id - role id to check
+   * @returns whether the checkbox is checked
    */
-  protected get availableRoles(): RoleResponse[] {
-    const assigned = new Set(this.user().roles.map((r) => r.id));
-    return this.allRoles().filter((r) => !assigned.has(r.id));
+  protected isChecked(id: number): boolean {
+    return this.checkedIds().has(id);
   }
 
   /**
-   * Adds the selected role to the user's current role set.
+   * Toggles a role's checked state.
    *
-   * Builds the new role ID list by appending selectedRoleId to the current
-   * assigned set, then calls assignRoles() to replace them atomically.
+   * Creates a new Set so the signal detects the change.
+   *
+   * @param id - role id to toggle
    */
-  protected addRole(): void {
-    if (this.selectedRoleId === null) return;
+  protected toggle(id: number): void {
+    const next = new Set(this.checkedIds());
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    this.checkedIds.set(next);
+    // Clear any previous business error when the user changes their selection
+    this.businessError.set(null);
+  }
+
+  /**
+   * Diffs initial vs final selection and calls PATCH /users/{id}/roles.
+   *
+   * If nothing changed, closes immediately without a network call. On
+   * BUSINESS_RULE the dialog stays open and shows the backend message.
+   */
+  protected save(): void {
+    const initial = this.initialIds;
+    const current = this.checkedIds();
+    const add = [...current].filter((id) => !initial.has(id));
+    const remove = [...initial].filter((id) => !current.has(id));
+
+    // No change: close without a server call
+    if (!add.length && !remove.length) {
+      this.dialogRef.close(this.user());
+      return;
+    }
 
     this.saving.set(true);
-
-    // Build new role ID set: current roles + selected role
-    const newIds = [...this.user().roles.map((r) => r.id), this.selectedRoleId];
-
-    this.usersService.assignRoles(this.user().id, newIds).subscribe({
+    this.usersService.updateRoles(this.user().id, { add, remove }).subscribe({
       next: (updated) => {
-        this.user.set(updated);
-        this.selectedRoleId = null;
-        this.saving.set(false);
+        this.dialogRef.close(updated);
       },
       error: (err: AppError) => {
         this.saving.set(false);
-        this.notification.error(err.message);
+        if (err.kind === 'BUSINESS_RULE') {
+          // Keep dialog open: show the backend message inline
+          this.businessError.set(err.message);
+        } else {
+          this.notification.error(err.message);
+        }
       },
     });
   }
 
   /**
-   * Removes a role from the user's current role set.
-   *
-   * Builds the new role ID list by excluding the removed role's id, then
-   * calls assignRoles() to replace the set atomically.
-   *
-   * @param role - the role to remove
+   * Closes the dialog without saving, emitting the original user state.
    */
-  protected removeRole(role: RoleResponse): void {
-    this.saving.set(true);
-
-    // Build new role ID set: current roles minus the removed role
-    const newIds = this.user().roles.filter((r) => r.id !== role.id).map((r) => r.id);
-
-    this.usersService.assignRoles(this.user().id, newIds).subscribe({
-      next: (updated) => {
-        this.user.set(updated);
-        this.saving.set(false);
-      },
-      error: (err: AppError) => {
-        this.saving.set(false);
-        this.notification.error(err.message);
-      },
-    });
-  }
-
-  /**
-   * Closes the dialog and emits the final user state.
-   */
-  protected close(): void {
+  protected cancel(): void {
     this.dialogRef.close(this.user());
   }
 }
