@@ -7,12 +7,7 @@ import { ApiResponse } from '../../shared/models/api-response.model';
 import { PageResponse } from '../../shared/models/page-response.model';
 import { UserResponse } from '../auth/models/user-response.model';
 import { UpdateProfileRequest } from '../auth/models/update-profile-request.model';
-
-/** Payload for the bulk-role assignment endpoint. */
-export interface AssignRolesRequest {
-  /** Complete set of role IDs to assign; replaces the current role set. */
-  role_ids: number[];
-}
+import { UpdateUserRolesRequest } from './models/update-user-roles-request.model';
 
 /**
  * Service for the /api/v1/users resource.
@@ -121,37 +116,31 @@ export class Users {
   }
 
   /**
-   * Replaces the user's entire role set with the given role IDs.
+   * Adds and removes roles on a user in a single request.
    *
-   * A single PUT replaces all roles atomically; this avoids ordering issues
-   * that arise when adding and removing roles one at a time (e.g., removing
-   * the last role could strip access before the new one is added).
+   * PATCH /users/{id}/roles applies a diff: the caller sends only the role
+   * ids that changed, not the complete set. One request for the whole edit
+   * means the dialog either saves everything or nothing, and a change made
+   * by another administrator on an untouched role is not overwritten.
+   *
+   * Empty lists are left out of the body, following the project rule that
+   * empty values are omitted. The caller must not call this method with
+   * nothing to add and nothing to remove: the backend answers 400.
    *
    * @param userId - user id
-   * @param roleIds - complete new role ID set (may be empty to remove all roles)
+   * @param changes - role ids to add and to remove
    * @returns Observable of the updated UserResponse reflecting the new roles
    */
-  assignRoles(userId: number, roleIds: number[]): Observable<UserResponse> {
-    const body: AssignRolesRequest = { role_ids: roleIds };
+  updateRoles(
+    userId: number,
+    changes: UpdateUserRolesRequest,
+  ): Observable<UserResponse> {
+    const body: UpdateUserRolesRequest = {};
+    // Optional chaining covers both a missing list and an empty one
+    if (changes.add?.length) body.add = changes.add;
+    if (changes.remove?.length) body.remove = changes.remove;
     return this.http
-      .put<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles`, body)
-      .pipe(map((res) => res.data));
-  }
-
-  /**
-   * Removes a single role from a user without touching the rest of the role set.
-   *
-   * Complements assignRoles() for UIs that need a one-click remove action
-   * (e.g., a chip with a delete button) where rebuilding the full role ID array
-   * would require a prior getUser() round-trip.
-   *
-   * @param userId - user id
-   * @param roleId - id of the role to remove
-   * @returns Observable of the updated UserResponse after the role is removed
-   */
-  removeRole(userId: number, roleId: number): Observable<UserResponse> {
-    return this.http
-      .delete<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles/${roleId}`)
+      .patch<ApiResponse<UserResponse>>(`${this.base}/${userId}/roles`, body)
       .pipe(map((res) => res.data));
   }
 }

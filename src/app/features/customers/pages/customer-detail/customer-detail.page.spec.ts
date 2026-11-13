@@ -9,12 +9,14 @@ import { CustomerDetailPage } from './customer-detail.page';
 import { Customers } from '../../customers';
 import { AppError } from '../../../../core/http/app-error.model';
 
-const productStub = {
-  id: 10,
+// OrderedProductResponse shape: one entry per order line
+const orderedProductStub = {
+  order_id: 50,
+  product_id: 10,
   product_name: 'Widget',
   unit_price: 9.99,
-  category_id: 2,
-  category_name: 'Electronics',
+  quantity: 2,
+  total: 19.98,
 };
 
 const customerStub = {
@@ -24,13 +26,15 @@ const customerStub = {
   telephone: '+1-555-0100',
   email: 'alice@example.com',
   address: '1 Main St',
-  products: [productStub],
+  products: [orderedProductStub],
+  total: 19.98,
 };
 
 const orderStub = {
   id: 100,
-  customer: { ...customerStub, products: [] },
-  product: productStub,
+  customer: { id: 1, first_name: 'Alice', last_name: 'Smith',
+              telephone: '+1-555-0100', email: 'alice@example.com', address: '1 Main St' },
+  product: { id: 10, product_name: 'Widget', unit_price: 9.99, category_id: 2, category_name: 'Electronics' },
   quantity: 2,
   total: 19.98,
 };
@@ -95,10 +99,12 @@ describe('CustomerDetailPage', () => {
     expect(component['loadingCustomer']()).toBe(false);
   });
 
-  it('loads products from CustomerResponse after customer loads', async () => {
+  it('loads order lines from CustomerResponse.products after customer loads', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component['products']()).toHaveLength(1);
+    // Verify the OrderedProductResponse shape is used
+    expect(component['products']()[0].order_id).toBe(orderedProductStub.order_id);
     expect(component['products']()[0].product_name).toBe('Widget');
   });
 

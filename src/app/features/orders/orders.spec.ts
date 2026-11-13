@@ -26,7 +26,6 @@ const customerStub = {
   telephone: '+1-555-0100',
   email: 'alice@example.com',
   address: '1 Main St',
-  products: [],
 };
 
 const orderStub = {
@@ -37,8 +36,24 @@ const orderStub = {
   total: 19.98,
 };
 
+// GET /orders groups orders by customer: one entry per customer, one line per order
+const customerOrdersStub = {
+  customer: customerStub,
+  products: [
+    {
+      order_id: 100,
+      product_id: 10,
+      product_name: 'Widget',
+      unit_price: 9.99,
+      quantity: 2,
+      total: 19.98,
+    },
+  ],
+  total: 19.98,
+};
+
 const pageStub = {
-  content: [orderStub],
+  content: [customerOrdersStub],
   page: 0,
   size: 10,
   totalElements: 1,
@@ -75,6 +90,18 @@ describe('Orders service', () => {
     const result = await promise;
     expect(result.content).toHaveLength(1);
     expect(result.totalElements).toBe(1);
+  });
+
+  it('getOrders returns entries grouped by customer with their order lines', async () => {
+    const promise = firstValueFrom(service.getOrders(0, 10));
+    const req = httpCtrl.expectOne((r) => r.url === BASE);
+    req.flush({ success: true, message: '', data: pageStub, timestamp: '' });
+    const result = await promise;
+    const entry = result.content[0];
+    expect(entry.customer.id).toBe(1);
+    // One line per order, identified by order_id rather than by product
+    expect(entry.products[0].order_id).toBe(100);
+    expect(entry.total).toBe(19.98);
   });
 
   // ---- getOrders -- customerId filter ----------------------------------------

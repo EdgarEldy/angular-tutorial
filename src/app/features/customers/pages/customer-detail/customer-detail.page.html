@@ -24,11 +24,14 @@
         <dd>{{ c.telephone }}</dd>
         <dt>Address</dt>
         <dd>{{ c.address }}</dd>
+        <dt>Total spent</dt>
+        <!-- c.total is computed server-side across all orders -->
+        <dd>{{ c.total | money }}</dd>
       </dl>
     </mat-card-content>
   </mat-card>
 
-  <!-- Products ordered by this customer (from GET /customers/{id}) -->
+  <!-- Order lines from GET /customers/{id}: one row per order, not per product -->
   <h2 class="section-title">Products ordered</h2>
   @if (products().length === 0) {
     <app-empty-state
@@ -39,9 +42,15 @@
     <div class="table-container">
       <table mat-table [dataSource]="products()">
 
+        <!-- Order id column: order_id is the stable key (a product ordered twice appears twice) -->
+        <ng-container matColumnDef="order_id">
+          <th mat-header-cell *matHeaderCellDef>Order #</th>
+          <td mat-cell *matCellDef="let p">{{ p.order_id }}</td>
+        </ng-container>
+
         <!-- Product name column -->
         <ng-container matColumnDef="product_name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>Product</th>
           <td mat-cell *matCellDef="let p">{{ p.product_name }}</td>
         </ng-container>
 
@@ -50,6 +59,18 @@
           <th mat-header-cell *matHeaderCellDef>Unit price</th>
           <!-- MoneyPipe uses Intl.NumberFormat for locale-aware currency formatting -->
           <td mat-cell *matCellDef="let p">{{ p.unit_price | money }}</td>
+        </ng-container>
+
+        <!-- Quantity column -->
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef>Qty</th>
+          <td mat-cell *matCellDef="let p">{{ p.quantity }}</td>
+        </ng-container>
+
+        <!-- Per-line total: computed by the server -->
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef>Total</th>
+          <td mat-cell *matCellDef="let p">{{ p.total | money }}</td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="productColumns"></tr>
