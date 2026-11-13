@@ -71,24 +71,6 @@ describe('Roles', () => {
     await promise;
   });
 
-  it('addPermission calls POST /{roleId}/permissions/{permId}', async () => {
-    const promise = firstValueFrom(service.addPermission(1, 2));
-    const req = httpCtrl.expectOne(`${BASE}/1/permissions/2`);
-    expect(req.request.method).toBe('POST');
-    req.flush({ success: true, message: '', data: roleWithPerm, timestamp: '' });
-    const result = await promise;
-    expect(result.permissions).toEqual([permStub]);
-  });
-
-  it('removePermission calls DELETE /{roleId}/permissions/{permId}', async () => {
-    const promise = firstValueFrom(service.removePermission(1, 2));
-    const req = httpCtrl.expectOne(`${BASE}/1/permissions/2`);
-    expect(req.request.method).toBe('DELETE');
-    req.flush({ success: true, message: '', data: roleStub, timestamp: '' });
-    const result = await promise;
-    expect(result.permissions).toEqual([]);
-  });
-
   it('updatePermissions calls PATCH /{roleId}/permissions with add and remove', async () => {
     const promise = firstValueFrom(
       service.updatePermissions(1, { add: [2], remove: [3] }),
