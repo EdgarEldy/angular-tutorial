@@ -10,6 +10,14 @@
 // Every custom component reads these CSS custom properties instead of
 // hard-coded values, so dark mode is a single attribute swap on :root.
 :root {
+  // Angular Material's mat.theme() emits its colors with the CSS light-dark()
+  // function, which picks the light or dark value from the nearest
+  // color-scheme. Declaring it here, on the same element as the dark overrides
+  // below, lets those overrides win: a color-scheme set on <body> would apply
+  // to every descendant (dialogs and menus included) and pin Material to
+  // light colors even when the application is dark.
+  color-scheme: light;
+
   // Layout dimensions
   --sidebar-w: 248px;
   --toolbar-h: 64px;
@@ -170,9 +178,6 @@ body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--txt-1);
-
-  // Start in light mode; the shell toggles this via [data-theme="dark"]
-  color-scheme: light;
 }
 
 // ── Auth layout ───────────────────────────────────────────────────────────────
