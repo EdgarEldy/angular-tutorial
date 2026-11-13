@@ -33,6 +33,7 @@ describe('ManageRolesDialog', () => {
   let component: ManageRolesDialog;
 
   beforeEach(async () => {
+    TestBed.resetTestingModule();
     dialogRefMock.close.mockClear();
     usersMock.getUser.mockClear();
     usersMock.updateRoles.mockClear();
