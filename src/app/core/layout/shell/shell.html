@@ -87,7 +87,9 @@
             <div class="profile-name">{{ displayName() }}</div>
             <div class="profile-role">{{ userRole() }}</div>
           </div>
-          <mat-icon class="chevron" fontSet="material-icons-outlined">expand_more</mat-icon>
+          <mat-icon class="chevron" fontSet="material-icons-outlined">
+            {{ profileOpen() ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
         </button>
 
       </div>
