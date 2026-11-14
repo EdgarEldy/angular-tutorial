@@ -214,6 +214,7 @@
   cursor: pointer;
   border: 1px solid var(--border);
   background: var(--surface);
+  outline: none;
   transition: background 0.15s;
 
   mat-icon {
@@ -225,6 +226,11 @@
 
   &:hover {
     background: var(--row-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 
@@ -239,6 +245,7 @@
   border: none;
   background: none;
   cursor: pointer;
+  outline: none;
   transition: background 0.15s;
 
   mat-icon {
@@ -250,6 +257,11 @@
 
   &:hover {
     background: var(--row-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 
@@ -279,10 +291,16 @@
   cursor: pointer;
   border: none;
   background: none;
+  outline: none;
   transition: background 0.15s;
 
   &:hover {
     background: var(--row-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .chevron {
