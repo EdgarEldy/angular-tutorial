@@ -5,21 +5,41 @@
     <div class="center">
       <mat-spinner diameter="32" />
     </div>
-  } @else if (allPermissions().length === 0) {
+  } @else if (resourceGrid().length === 0) {
     <p class="empty-hint">No permissions defined in the system.</p>
   } @else {
-    <p class="section-label">Permissions</p>
-    <!-- One checkbox per permission; pre-checked when already on the role -->
-    <div class="checkbox-list">
-      @for (p of allPermissions(); track p.id) {
-        <mat-checkbox
-          [checked]="isChecked(p.id)"
-          [disabled]="saving()"
-          (change)="toggle(p.id)">
-          {{ p.resource }}:{{ p.action }}
-        </mat-checkbox>
-      }
-    </div>
+    <!-- One row per resource; one column per predefined action -->
+    <table class="perm-grid">
+      <thead>
+        <tr>
+          <th class="col-resource">Resource</th>
+          @for (action of ACTIONS; track action) {
+            <th class="col-action">{{ action }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of resourceGrid(); track row.resource) {
+          <tr>
+            <td class="cell-resource">{{ row.resource }}</td>
+            @for (action of ACTIONS; track action) {
+              @let perm = row.cells.get(action);
+              <td class="cell-action">
+                @if (perm) {
+                  <!-- Checkbox present only when this resource:action permission exists -->
+                  <mat-checkbox
+                    [checked]="isChecked(perm.id)"
+                    [disabled]="saving()"
+                    (change)="toggle(perm.id)" />
+                } @else {
+                  <span class="no-perm">--</span>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
 
     @if (businessError()) {
       <p class="business-error">{{ businessError() }}</p>
