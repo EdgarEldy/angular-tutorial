@@ -9,6 +9,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header';
@@ -46,6 +47,7 @@ import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/con
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
+    MatTooltipModule,
     PageHeaderComponent,
     LoadingComponent,
     ErrorBannerComponent,
@@ -126,7 +128,8 @@ export class RoleListPage implements OnInit {
    * @param role - the role whose permissions to manage
    */
   protected openManagePermissions(role: RoleResponse): void {
-    const ref = this.dialog.open(ManagePermissionsDialog, { data: { role } });
+    // minWidth ensures the grid has room for resource + four action columns
+    const ref = this.dialog.open(ManagePermissionsDialog, { data: { role }, minWidth: '640px' });
     ref.afterClosed().subscribe((updated: RoleResponse | undefined) => {
       if (updated) {
         this.roles.update((list) =>

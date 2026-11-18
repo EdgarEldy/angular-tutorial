@@ -40,13 +40,13 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let r">
-        <button mat-icon-button aria-label="Edit role" (click)="openEditDialog(r)">
+        <button mat-icon-button aria-label="Edit role" matTooltip="Edit role" (click)="openEditDialog(r)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Manage permissions" (click)="openManagePermissions(r)">
+        <button mat-icon-button aria-label="Manage permissions" matTooltip="Manage permissions" (click)="openManagePermissions(r)">
           <mat-icon>manage_accounts</mat-icon>
         </button>
-        <button mat-icon-button color="warn" aria-label="Delete role" (click)="deleteRole(r)">
+        <button mat-icon-button color="warn" aria-label="Delete role" matTooltip="Delete role" (click)="deleteRole(r)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>
