@@ -45,10 +45,10 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let u">
-        <button mat-icon-button aria-label="Edit user" (click)="openEditDialog(u)">
+        <button mat-icon-button aria-label="Edit user" matTooltip="Edit user" (click)="openEditDialog(u)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Manage roles" (click)="openManageRoles(u)">
+        <button mat-icon-button aria-label="Manage roles" matTooltip="Manage roles" (click)="openManageRoles(u)">
           <mat-icon>manage_accounts</mat-icon>
         </button>
         @if (u.account_locked) {
@@ -56,7 +56,7 @@
             mat-icon-button
             aria-label="Unlock account"
             [disabled]="u.email === currentUserEmail"
-            [matTooltip]="u.email === currentUserEmail ? 'Cannot unlock your own account' : ''"
+            [matTooltip]="u.email === currentUserEmail ? 'Cannot unlock your own account' : 'Unlock account'"
             (click)="unlockUser(u)">
             <mat-icon>lock_open</mat-icon>
           </button>
@@ -65,7 +65,7 @@
             mat-icon-button
             aria-label="Lock account"
             [disabled]="u.email === currentUserEmail"
-            [matTooltip]="u.email === currentUserEmail ? 'Cannot lock your own account' : ''"
+            [matTooltip]="u.email === currentUserEmail ? 'Cannot lock your own account' : 'Lock account'"
             (click)="lockUser(u)">
             <mat-icon>lock</mat-icon>
           </button>
@@ -75,7 +75,7 @@
           color="warn"
           aria-label="Delete user"
           [disabled]="u.email === currentUserEmail"
-          [matTooltip]="u.email === currentUserEmail ? 'Cannot delete your own account' : ''"
+          [matTooltip]="u.email === currentUserEmail ? 'Cannot delete your own account' : 'Delete user'"
           (click)="deleteUser(u)">
           <mat-icon>delete</mat-icon>
         </button>
