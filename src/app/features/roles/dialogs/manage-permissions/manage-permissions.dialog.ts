@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   OnInit,
   signal,
@@ -19,6 +20,24 @@ import { Permissions } from '../../../permissions/permissions';
 import { RoleResponse, PermissionResponse } from '../../../auth/models/user-response.model';
 import { AppError } from '../../../../core/http/app-error.model';
 import { NotificationService } from '../../../../core/notification/notification';
+
+/**
+ * Fixed action columns shown in the grid.
+ *
+ * Defined here rather than fetched from the backend to keep the dialog
+ * synchronous. The backend enforces its own set of valid actions; the grid
+ * simply hides cells for action/resource combinations that have not been
+ * created yet.
+ */
+const ACTIONS = ['CREATE', 'READ', 'UPDATE', 'DELETE'] as const;
+type Action = (typeof ACTIONS)[number];
+
+/** One row in the permission grid: one resource and its known action cells. */
+interface ResourceRow {
+  resource: string;
+  /** Sparse map -- only actions whose PermissionResponse exists in the system. */
+  cells: Map<Action, PermissionResponse>;
+}
 
 /** Data passed to the dialog via MAT_DIALOG_DATA. */
 export interface ManagePermissionsDialogData {
@@ -66,6 +85,32 @@ export class ManagePermissionsDialog implements OnInit {
 
   /** All permissions available in the system. */
   protected readonly allPermissions = signal<PermissionResponse[]>([]);
+
+  /** Fixed action columns exposed to the template for @for iteration. */
+  protected readonly ACTIONS = ACTIONS;
+
+  /**
+   * Permissions grouped by resource and keyed by action for the grid template.
+   *
+   * Recomputes automatically whenever allPermissions() changes. Resources are
+   * sorted alphabetically so the table order is stable across reloads.
+   */
+  protected readonly resourceGrid = computed<ResourceRow[]>(() => {
+    const map = new Map<string, Map<Action, PermissionResponse>>();
+    for (const p of this.allPermissions()) {
+      if (!map.has(p.resource)) {
+        map.set(p.resource, new Map());
+      }
+      // p.action may be any string; cast so the Map key is typed
+      const row = map.get(p.resource);
+      if (row) {
+        row.set(p.action as Action, p);
+      }
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([resource, cells]) => ({ resource, cells }));
+  });
 
   /**
    * Set of permission ids currently checked in the UI.
