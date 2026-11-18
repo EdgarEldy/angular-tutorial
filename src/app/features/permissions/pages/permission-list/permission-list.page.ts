@@ -8,6 +8,7 @@ import {
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header';
@@ -40,6 +41,7 @@ import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/con
     MatTableModule,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
     PageHeaderComponent,
     LoadingComponent,
     ErrorBannerComponent,
@@ -95,10 +97,10 @@ export class PermissionListPage implements OnInit {
    */
   protected openCreateDialog(): void {
     const ref = this.dialog.open(PermissionFormDialog);
-    ref.afterClosed().subscribe((created: PermissionResponse | undefined) => {
-      if (created) {
-        // Append to local list without a round-trip fetch
-        this.permissions.update((list) => [...list, created]);
+    ref.afterClosed().subscribe((created: PermissionResponse[] | undefined) => {
+      if (created?.length) {
+        // Spread the full batch into the list without a round-trip fetch
+        this.permissions.update((list) => [...list, ...created]);
       }
     });
   }
